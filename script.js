@@ -59,7 +59,10 @@ function datumDeutsch(datum) {
 function heuteISO() {
   const jetzt = new Date();
   const offset = jetzt.getTimezoneOffset();
-  const lokal = new Date(jetzt.getTime() - offset * 60000);
+
+  const lokal = new Date(
+    jetzt.getTime() - offset * 60000
+  );
 
   return lokal.toISOString().split("T")[0];
 }
@@ -72,14 +75,24 @@ function neueId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function datumAusISO(iso) {
+function isoZuDatum(iso) {
   if (!iso) return null;
 
-  const teile = String(iso).split("-").map(Number);
+  const teile = String(iso).split("-");
 
   if (teile.length !== 3) return null;
 
-  const [jahr, monat, tag] = teile;
+  const jahr = Number(teile[0]);
+  const monat = Number(teile[1]);
+  const tag = Number(teile[2]);
+
+  if (
+    !Number.isInteger(jahr) ||
+    !Number.isInteger(monat) ||
+    !Number.isInteger(tag)
+  ) {
+    return null;
+  }
 
   const datum = new Date(
     jahr,
@@ -91,13 +104,20 @@ function datumAusISO(iso) {
     0
   );
 
-  return Number.isNaN(datum.getTime())
-    ? null
-    : datum;
+  if (
+    datum.getFullYear() !== jahr ||
+    datum.getMonth() !== monat - 1 ||
+    datum.getDate() !== tag
+  ) {
+    return null;
+  }
+
+  return datum;
 }
 
-function datumAlsISO(datum) {
+function datumZuISO(datum) {
   const jahr = datum.getFullYear();
+
   const monat = String(
     datum.getMonth() + 1
   ).padStart(2, "0");
@@ -109,11 +129,44 @@ function datumAlsISO(datum) {
   return `${jahr}-${monat}-${tag}`;
 }
 
-function monatsSchluessel(datum) {
-  return (
-    `${datum.getFullYear()}-` +
-    `${String(datum.getMonth() + 1).padStart(2, "0")}`
+function addiereMonate(datum, anzahl) {
+  const tag = datum.getDate();
+
+  const ziel = new Date(
+    datum.getFullYear(),
+    datum.getMonth() + anzahl,
+    1,
+    12,
+    0,
+    0,
+    0
   );
+
+  const letzterTag = new Date(
+    ziel.getFullYear(),
+    ziel.getMonth() + 1,
+    0,
+    12,
+    0,
+    0,
+    0
+  ).getDate();
+
+  ziel.setDate(
+    Math.min(tag, letzterTag)
+  );
+
+  return ziel;
+}
+
+function addiereTage(datum, anzahl) {
+  const kopie = new Date(datum);
+
+  kopie.setDate(
+    kopie.getDate() + anzahl
+  );
+
+  return kopie;
 }
 
 function monatsName(datum) {
@@ -158,7 +211,9 @@ function trainingPasstZuBereich(training, bereich) {
     return true;
   }
 
-  const art = String(training?.waffenart ?? "")
+  const art = String(
+    training?.waffenart ?? ""
+  )
     .trim()
     .toLowerCase();
 
@@ -265,7 +320,9 @@ function ladeTrainings() {
       return [];
     }
 
-    return daten.map(normalisiereTraining);
+    return daten.map(
+      normalisiereTraining
+    );
   } catch (fehler) {
     console.error(
       "Trainings konnten nicht geladen werden:",
@@ -304,12 +361,19 @@ function praezisionSchuesse(t) {
 }
 
 function praezisionProzent(t) {
-  if (Number.isFinite(Number(t.prozent))) {
+  if (
+    Number.isFinite(
+      Number(t.prozent)
+    )
+  ) {
     return zahl(t.prozent);
   }
 
-  const ringe = praezisionRinge(t);
-  const schuesse = praezisionSchuesse(t);
+  const ringe =
+    praezisionRinge(t);
+
+  const schuesse =
+    praezisionSchuesse(t);
 
   if (!schuesse) return 0;
 
@@ -455,91 +519,123 @@ function zeigeSeite(id) {
 $("neuesTraining")?.addEventListener(
   "click",
   () => {
-    zeigeSeite("disziplinAuswahl");
+    zeigeSeite(
+      "disziplinAuswahl"
+    );
   }
 );
 
 $("leistungenOeffnen")?.addEventListener(
   "click",
   () => {
-    zeigeSeite("leistungsseite");
+    zeigeSeite(
+      "leistungsseite"
+    );
   }
 );
 
 $("entwicklungOeffnen")?.addEventListener(
   "click",
   () => {
-    zeigeSeite("entwicklungsseite");
+    zeigeSeite(
+      "entwicklungsseite"
+    );
   }
 );
 
 $("trainingsbuchOeffnen")?.addEventListener(
   "click",
   () => {
-    zeigeSeite("trainingsseite");
+    zeigeSeite(
+      "trainingsseite"
+    );
   }
 );
 
 $("beduerfnisOeffnen")?.addEventListener(
   "click",
   () => {
-    zeigeSeite("beduerfnisSeite");
+    zeigeSeite(
+      "beduerfnisSeite"
+    );
   }
 );
 
 $("backupOeffnen")?.addEventListener(
   "click",
   () => {
-    zeigeSeite("backupSeite");
+    zeigeSeite(
+      "backupSeite"
+    );
   }
 );
 
-$("disziplinAuswahlZurueck")?.addEventListener(
-  "click",
-  () => {
-    zeigeSeite("startseite");
-  }
-);
+$("disziplinAuswahlZurueck")
+  ?.addEventListener(
+    "click",
+    () => {
+      zeigeSeite(
+        "startseite"
+      );
+    }
+  );
 
-$("leistungenZurueck")?.addEventListener(
-  "click",
-  () => {
-    zeigeSeite("startseite");
-  }
-);
+$("leistungenZurueck")
+  ?.addEventListener(
+    "click",
+    () => {
+      zeigeSeite(
+        "startseite"
+      );
+    }
+  );
 
-$("entwicklungZurueck")?.addEventListener(
-  "click",
-  () => {
-    zeigeSeite("startseite");
-  }
-);
+$("entwicklungZurueck")
+  ?.addEventListener(
+    "click",
+    () => {
+      zeigeSeite(
+        "startseite"
+      );
+    }
+  );
 
-$("trainingZurueck")?.addEventListener(
-  "click",
-  () => {
-    zeigeSeite("startseite");
-  }
-);
+$("trainingZurueck")
+  ?.addEventListener(
+    "click",
+    () => {
+      zeigeSeite(
+        "startseite"
+      );
+    }
+  );
 
-$("beduerfnisZurueck")?.addEventListener(
-  "click",
-  () => {
-    zeigeSeite("startseite");
-  }
-);
+$("beduerfnisZurueck")
+  ?.addEventListener(
+    "click",
+    () => {
+      zeigeSeite(
+        "startseite"
+      );
+    }
+  );
 
-$("backupZurueck")?.addEventListener(
-  "click",
-  () => {
-    zeigeSeite("startseite");
-  }
-);
+$("backupZurueck")
+  ?.addEventListener(
+    "click",
+    () => {
+      zeigeSeite(
+        "startseite"
+      );
+    }
+  );
 
 $("zurueck")?.addEventListener(
   "click",
   () => {
-    zeigeSeite("disziplinAuswahl");
+    zeigeSeite(
+      "disziplinAuswahl"
+    );
   }
 );
 
@@ -547,49 +643,24 @@ $("zurueck")?.addEventListener(
    BEDÜRFNISNACHWEIS – MODUS
    ========================================================= */
 
-$("beduerfnisModusErwerb")?.addEventListener(
-  "click",
-  () => {
-    setzeBeduerfnisModus("erwerb");
-  }
-);
-
-$("beduerfnisModusBesitz")?.addEventListener(
-  "click",
-  () => {
-    setzeBeduerfnisModus("besitz");
-  }
-);
-
 function ladeBeduerfnisModus() {
   const modus =
     localStorage.getItem(
       BEDUERFNIS_MODUS_KEY
     );
 
-  return modus === "besitz"
-    ? "besitz"
-    : "erwerb";
+  if (modus === "besitz") {
+    return "besitz";
+  }
+
+  return "erwerb";
 }
 
 function setzeBeduerfnisModus(
-  modus,
-  speichern = true
+  modus
 ) {
   const istBesitz =
     modus === "besitz";
-
-  $("beduerfnisErwerb")
-    ?.classList.toggle(
-      "versteckt",
-      istBesitz
-    );
-
-  $("beduerfnisBesitz")
-    ?.classList.toggle(
-      "versteckt",
-      !istBesitz
-    );
 
   $("beduerfnisModusErwerb")
     ?.classList.toggle(
@@ -603,75 +674,147 @@ function setzeBeduerfnisModus(
       istBesitz
     );
 
-  if (speichern) {
-    localStorage.setItem(
-      BEDUERFNIS_MODUS_KEY,
+  $("beduerfnisErwerb")
+    ?.classList.toggle(
+      "versteckt",
       istBesitz
-        ? "besitz"
-        : "erwerb"
     );
-  }
+
+  $("beduerfnisBesitz")
+    ?.classList.toggle(
+      "versteckt",
+      !istBesitz
+    );
+
+  localStorage.setItem(
+    BEDUERFNIS_MODUS_KEY,
+    istBesitz
+      ? "besitz"
+      : "erwerb"
+  );
+
+  aktualisiereBeduerfnis();
 }
+
+$("beduerfnisModusErwerb")
+  ?.addEventListener(
+    "click",
+    () => {
+      setzeBeduerfnisModus(
+        "erwerb"
+      );
+    }
+  );
+
+$("beduerfnisModusBesitz")
+  ?.addEventListener(
+    "click",
+    () => {
+      setzeBeduerfnisModus(
+        "besitz"
+      );
+    }
+  );
 
 /* =========================================================
    BEDÜRFNISNACHWEIS – TRAININGSTAGE
    ========================================================= */
 
-function eindeutigeTrainingstage(
-  startDatum,
-  endDatum
+function gueltigeTrainingstage(
+  start,
+  ende
 ) {
+  const startZeit =
+    start.getTime();
+
+  const endeZeit =
+    ende.getTime();
+
   const tage = new Set();
 
   trainings.forEach(training => {
     const datum =
-      datumAusISO(training.datum);
+      isoZuDatum(
+        training.datum
+      );
 
     if (!datum) return;
 
-    if (
-      startDatum &&
-      datum < startDatum
-    ) {
-      return;
-    }
+    const zeit =
+      datum.getTime();
 
     if (
-      endDatum &&
-      datum > endDatum
+      zeit < startZeit ||
+      zeit > endeZeit
     ) {
       return;
     }
 
     /*
       WICHTIG:
-      Mehrere Einträge am selben Kalendertag
-      zählen nur EINMAL.
+      Ein Kalendertag zählt nur einmal.
+
+      Wenn an einem Tag zum Beispiel
+      Präzision UND Speed oder
+      9 mm UND .22 l.r. gespeichert
+      wurden, bleibt es hier trotzdem
+      genau EIN Trainingstag.
     */
-    tage.add(datumAlsISO(datum));
+    tage.add(
+      datumZuISO(datum)
+    );
   });
 
   return [...tage].sort();
 }
 
+function trainingstageInMonat(
+  tage,
+  jahr,
+  monat
+) {
+  return tage.filter(iso => {
+    const datum =
+      isoZuDatum(iso);
+
+    return (
+      datum &&
+      datum.getFullYear() === jahr &&
+      datum.getMonth() === monat
+    );
+  });
+}
+
 /* =========================================================
-   BEDÜRFNIS – ERWERB
-   § 14 ABS. 3 WAFFG
+   BEDÜRFNISNACHWEIS – ERWERB
    ========================================================= */
 
 function erwerbZeitraum() {
   const ende =
-    datumAusISO(heuteISO());
+    isoZuDatum(
+      heuteISO()
+    );
+
+  /*
+    "Vergangene zwölf Monate":
+
+    Beispiel bei 15.09.2026:
+    16.09.2025 bis 15.09.2026.
+
+    Dadurch umfasst der Zeitraum
+    exakt zwölf Monate bis einschließlich
+    des heutigen Tages.
+  */
+  const vorZwölfMonaten =
+    addiereMonate(
+      ende,
+      -12
+    );
 
   const start =
-    new Date(
-      ende.getFullYear() - 1,
-      ende.getMonth(),
-      ende.getDate() + 1,
-      12,
-      0,
-      0,
-      0
+    addiereTage(
+      vorZwölfMonaten,
+      1
     );
 
   return {
@@ -680,18 +823,126 @@ function erwerbZeitraum() {
   };
 }
 
-function erwerbMonate() {
-  const heute =
-    datumAusISO(heuteISO());
-
+function ganzeMonateImZeitraum(
+  start,
+  ende
+) {
   const monate = [];
 
-  for (let i = 11; i >= 0; i--) {
-    const datum =
+  /*
+    Erster möglicher Monat:
+    Ist der Start der 1. eines Monats,
+    ist dieser Monat vollständig enthalten.
+
+    Beginnt der Zeitraum später,
+    starten wir mit dem Folgemonat.
+  */
+  let cursor;
+
+  if (start.getDate() === 1) {
+    cursor = new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      1,
+      12,
+      0,
+      0,
+      0
+    );
+  } else {
+    cursor = new Date(
+      start.getFullYear(),
+      start.getMonth() + 1,
+      1,
+      12,
+      0,
+      0,
+      0
+    );
+  }
+
+  while (cursor <= ende) {
+    const letzterTag =
       new Date(
-        heute.getFullYear(),
-        heute.getMonth() - i,
+        cursor.getFullYear(),
+        cursor.getMonth() + 1,
+        0,
+        12,
+        0,
+        0,
+        0
+      );
+
+    if (letzterTag <= ende) {
+      monate.push({
+        jahr:
+          cursor.getFullYear(),
+
+        monat:
+          cursor.getMonth(),
+
+        start:
+          new Date(cursor),
+
+        ende:
+          letzterTag
+      });
+    }
+
+    cursor =
+      new Date(
+        cursor.getFullYear(),
+        cursor.getMonth() + 1,
         1,
+        12,
+        0,
+        0,
+        0
+      );
+  }
+
+  return monate;
+}
+
+function alleBeruehrtenMonate(
+  start,
+  ende
+) {
+  const monate = [];
+
+  let cursor =
+    new Date(
+      start.getFullYear(),
+      start.getMonth(),
+      1,
+      12,
+      0,
+      0,
+      0
+    );
+
+  const letzterMonat =
+    new Date(
+      ende.getFullYear(),
+      ende.getMonth(),
+      1,
+      12,
+      0,
+      0,
+      0
+    );
+
+  while (
+    cursor <= letzterMonat
+  ) {
+    const monatsStart =
+      new Date(cursor);
+
+    const monatsEnde =
+      new Date(
+        cursor.getFullYear(),
+        cursor.getMonth() + 1,
+        0,
         12,
         0,
         0,
@@ -699,211 +950,295 @@ function erwerbMonate() {
       );
 
     monate.push({
-      datum,
-      key: monatsSchluessel(datum)
+      jahr:
+        cursor.getFullYear(),
+
+      monat:
+        cursor.getMonth(),
+
+      start:
+        monatsStart,
+
+      ende:
+        monatsEnde,
+
+      istGanz:
+        monatsStart >= start &&
+        monatsEnde <= ende
     });
+
+    cursor =
+      new Date(
+        cursor.getFullYear(),
+        cursor.getMonth() + 1,
+        1,
+        12,
+        0,
+        0,
+        0
+      );
   }
 
   return monate;
 }
 
-function aktualisiereErwerb() {
-  const zeitraum =
-    erwerbZeitraum();
+function berechneErwerb() {
+  const {
+    start,
+    ende
+  } = erwerbZeitraum();
 
   const tage =
-    eindeutigeTrainingstage(
-      zeitraum.start,
-      zeitraum.ende
+    gueltigeTrainingstage(
+      start,
+      ende
     );
 
-  const tageSet =
-    new Set(tage);
+  const ganzeMonate =
+    ganzeMonateImZeitraum(
+      start,
+      ende
+    );
 
-  const monate =
-    erwerbMonate();
+  const beruehrteMonate =
+    alleBeruehrtenMonate(
+      start,
+      ende
+    );
 
-  const monatsDaten =
-    monate.map(monat => {
-      const anzahl =
-        [...tageSet].filter(tag => {
-          const datum =
-            datumAusISO(tag);
-
-          return (
-            monatsSchluessel(datum) ===
-            monat.key
-          );
-        }).length;
-
-      return {
-        ...monat,
-        anzahl,
-        aktiv: anzahl > 0
-      };
+  const ganzeMonateMitTraining =
+    ganzeMonate.filter(monat => {
+      return (
+        trainingstageInMonat(
+          tage,
+          monat.jahr,
+          monat.monat
+        ).length > 0
+      );
     });
 
-  const aktiveMonate =
-    monatsDaten.filter(
-      monat => monat.aktiv
-    ).length;
+  const monatsWegErfuellt =
+    ganzeMonate.length > 0 &&
+    ganzeMonateMitTraining.length ===
+      ganzeMonate.length;
 
-  const trainingstage =
-    tage.length;
+  const achtzehnWegErfuellt =
+    tage.length >= 18;
 
-  /*
-    § 14 Abs. 3:
-    Monatsregel ODER 18-mal-Regel.
+  return {
+    start,
+    ende,
+    tage,
+    ganzeMonate,
+    beruehrteMonate,
+    ganzeMonateMitTraining,
+    monatsWegErfuellt,
+    achtzehnWegErfuellt,
+    erfuellt:
+      monatsWegErfuellt ||
+      achtzehnWegErfuellt
+  };
+}
 
-    Die Monatsübersicht zeigt die zwölf
-    aktuellen Kalendermonate als persönliche
-    Orientierung.
+function renderErwerb() {
+  const daten =
+    berechneErwerb();
 
-    Die endgültige Bescheinigung erstellt
-    der zuständige Verband/Teilverband.
-  */
+  const monateErfuellt =
+    daten.ganzeMonateMitTraining.length;
 
-  const monatsWeg =
-    aktiveMonate >= 12;
-
-  const achtzehnWeg =
-    trainingstage >= 18;
-
-  const erfuellt =
-    monatsWeg || achtzehnWeg;
+  const monateGesamt =
+    daten.ganzeMonate.length;
 
   if ($("beduerfnisErwerbMonate")) {
     $("beduerfnisErwerbMonate")
       .textContent =
-      `${aktiveMonate} / 12`;
+        `${monateErfuellt} / ${monateGesamt}`;
   }
 
   if ($("beduerfnisErwerbTage")) {
     $("beduerfnisErwerbTage")
       .textContent =
-      `${trainingstage} / 18`;
+        `${Math.min(
+          daten.tage.length,
+          18
+        )} / 18`;
   }
 
   if ($("beduerfnisErwerbZeitraum")) {
     $("beduerfnisErwerbZeitraum")
       .textContent =
-      `${datumDeutsch(
-        datumAlsISO(zeitraum.start)
-      )} – ${datumDeutsch(
-        datumAlsISO(zeitraum.ende)
-      )}`;
+        `${datumDeutsch(
+          datumZuISO(daten.start)
+        )} – ${datumDeutsch(
+          datumZuISO(daten.ende)
+        )}`;
   }
 
   const status =
     $("beduerfnisErwerbStatus");
 
   if (status) {
-    status.classList.remove(
-      "erfuellt",
-      "offen"
-    );
-
-    if (erfuellt) {
-      status.classList.add(
-        "erfuellt"
-      );
-
+    if (daten.erfuellt) {
       if (
-        monatsWeg &&
-        achtzehnWeg
+        daten.monatsWegErfuellt &&
+        daten.achtzehnWegErfuellt
       ) {
         status.textContent =
-          "✓ Beide Aktivitätswege erreicht: Monatsregel und mindestens 18 Trainingstage.";
-      } else if (monatsWeg) {
+          "Aktivität erfüllt beide Wege: jeden ganzen Monat mindestens einmal und mindestens 18 Trainingstage.";
+      } else if (
+        daten.monatsWegErfuellt
+      ) {
         status.textContent =
-          "✓ Monatsweg erreicht: in allen 12 angezeigten Monaten wurde trainiert.";
+          "Monatsweg erfüllt: In jedem ganzen Monat des Betrachtungszeitraums ist mindestens ein Trainingstag vorhanden.";
       } else {
         status.textContent =
-          "✓ 18er-Weg erreicht: mindestens 18 Trainingstage im Betrachtungszeitraum.";
+          "18er-Weg erfüllt: Mindestens 18 Trainingstage liegen im Betrachtungszeitraum.";
       }
     } else {
-      status.classList.add(
-        "offen"
-      );
-
       const fehlendeMonate =
         Math.max(
           0,
-          12 - aktiveMonate
+          monateGesamt -
+          monateErfuellt
         );
 
       const fehlendeTage =
         Math.max(
           0,
-          18 - trainingstage
+          18 -
+          daten.tage.length
         );
 
+      let monatsText;
+
+      if (monateGesamt === 0) {
+        monatsText =
+          "Für den Monatsweg liegt noch kein ganzer Monat im Betrachtungszeitraum.";
+      } else if (
+        fehlendeMonate === 0
+      ) {
+        monatsText =
+          "Der Monatsweg ist erfüllt.";
+      } else {
+        monatsText =
+          `Noch offen: ${fehlendeMonate} ${
+            fehlendeMonate === 1
+              ? "ganzer Monat"
+              : "ganze Monate"
+          } ohne Training`;
+      }
+
+      const tageText =
+        fehlendeTage === 0
+          ? "der 18er-Weg ist erfüllt"
+          : `${fehlendeTage} ${
+              fehlendeTage === 1
+                ? "Trainingstag"
+                : "Trainingstage"
+            } bis zum 18er-Weg`;
+
       status.textContent =
-        `Noch offen: ${fehlendeMonate} ${
-          fehlendeMonate === 1
-            ? "Monat"
-            : "Monate"
-        } bis zum Monatsweg oder ${fehlendeTage} ${
-          fehlendeTage === 1
-            ? "Trainingstag"
-            : "Trainingstage"
-        } bis zum 18er-Weg.`;
+        `${monatsText}; oder ${tageText}.`;
     }
   }
 
-  renderBeduerfnisMonate(
-    monatsDaten
+  renderErwerbMonate(
+    daten
   );
 }
 
-function renderBeduerfnisMonate(
-  monatsDaten
+function renderErwerbMonate(
+  daten
 ) {
   const container =
     $("beduerfnisMonatsListe");
 
   if (!container) return;
 
+  if (
+    !daten.beruehrteMonate.length
+  ) {
+    container.innerHTML = `
+      <div class="keine-daten">
+        Noch keine Monatsdaten vorhanden.
+      </div>
+    `;
+
+    return;
+  }
+
   container.innerHTML =
-    monatsDaten
+    daten.beruehrteMonate
       .map(monat => {
-        const name =
-          monatsName(
-            monat.datum
+        const tage =
+          trainingstageInMonat(
+            daten.tage,
+            monat.jahr,
+            monat.monat
           );
 
-        const anzahlText =
-          monat.anzahl === 1
-            ? "1 Trainingstag"
-            : `${monat.anzahl} Trainingstage`;
+        const aktiv =
+          tage.length > 0;
+
+        let untertitel;
+
+        if (aktiv) {
+          untertitel =
+            `${tage.length} ${
+              tage.length === 1
+                ? "Trainingstag"
+                : "Trainingstage"
+            }`;
+        } else {
+          untertitel =
+            "Kein Training";
+        }
+
+        /*
+          Teilmonate werden angezeigt,
+          damit der sichtbare Kalender
+          wirklich zum angegebenen
+          Betrachtungszeitraum passt.
+
+          Für den gesetzlichen Monatsweg
+          werden sie aber NICHT als
+          erforderlicher ganzer Monat
+          gewertet.
+        */
+        const teilmonat =
+          !monat.istGanz
+            ? `<small class="beduerfnis-monat-teil">Teilmonat</small>`
+            : "";
 
         return `
-          <div class="beduerfnis-monat ${
-            monat.aktiv
-              ? "aktiv"
-              : ""
-          }">
-
-            <div class="beduerfnis-monat-kopf">
-
+          <div
+            class="beduerfnis-monat ${
+              aktiv ? "aktiv" : ""
+            }"
+          >
+            <div class="beduerfnis-monat-info">
               <strong>
-                ${htmlSicher(name)}
+                ${htmlSicher(
+                  monatsName(
+                    monat.start
+                  )
+                )}
               </strong>
 
-              <span
-                class="beduerfnis-monat-status"
-              ></span>
+              <span>
+                ${htmlSicher(
+                  untertitel
+                )}
+              </span>
 
+              ${teilmonat}
             </div>
 
-            <span>
-              ${
-                monat.aktiv
-                  ? htmlSicher(anzahlText)
-                  : "Kein Training"
-              }
-            </span>
-
+            <span
+              class="beduerfnis-monat-status"
+              aria-hidden="true"
+            ></span>
           </div>
         `;
       })
@@ -911,23 +1246,25 @@ function renderBeduerfnisMonate(
 }
 
 /* =========================================================
-   BEDÜRFNIS – BESITZ
-   § 14 ABS. 4 WAFFG
+   BEDÜRFNISNACHWEIS – BESITZ
    ========================================================= */
 
 function besitzZeitraum() {
   const ende =
-    datumAusISO(heuteISO());
+    isoZuDatum(
+      heuteISO()
+    );
+
+  const vor24Monaten =
+    addiereMonate(
+      ende,
+      -24
+    );
 
   const start =
-    new Date(
-      ende.getFullYear() - 2,
-      ende.getMonth(),
-      ende.getDate() + 1,
-      12,
-      0,
-      0,
-      0
+    addiereTage(
+      vor24Monaten,
+      1
     );
 
   return {
@@ -936,79 +1273,79 @@ function besitzZeitraum() {
   };
 }
 
-function aktualisiereBesitz() {
-  const zeitraum =
-    besitzZeitraum();
+function berechneBesitz() {
+  const {
+    start,
+    ende
+  } = besitzZeitraum();
 
   const tage =
-    eindeutigeTrainingstage(
-      zeitraum.start,
-      zeitraum.ende
+    gueltigeTrainingstage(
+      start,
+      ende
     );
 
   const monate =
-    new Set(
-      tage.map(tag => {
-        const datum =
-          datumAusISO(tag);
-
-        return monatsSchluessel(
-          datum
-        );
-      })
+    alleBeruehrtenMonate(
+      start,
+      ende
     );
+
+  const aktiveMonate =
+    monate.filter(monat => {
+      return (
+        trainingstageInMonat(
+          tage,
+          monat.jahr,
+          monat.monat
+        ).length > 0
+      );
+    });
+
+  return {
+    start,
+    ende,
+    tage,
+    aktiveMonate
+  };
+}
+
+function renderBesitz() {
+  const daten =
+    berechneBesitz();
 
   if ($("beduerfnisBesitzMonate")) {
     $("beduerfnisBesitzMonate")
       .textContent =
-      monate.size;
+        daten.aktiveMonate.length;
   }
 
   if ($("beduerfnisBesitzTage")) {
     $("beduerfnisBesitzTage")
       .textContent =
-      tage.length;
+        daten.tage.length;
   }
 
   if ($("beduerfnisBesitzZeitraum")) {
     $("beduerfnisBesitzZeitraum")
       .textContent =
-      `${datumDeutsch(
-        datumAlsISO(zeitraum.start)
-      )} – ${datumDeutsch(
-        datumAlsISO(zeitraum.ende)
-      )}`;
+        `${datumDeutsch(
+          datumZuISO(daten.start)
+        )} – ${datumDeutsch(
+          datumZuISO(daten.ende)
+        )}`;
   }
 
-  const status =
-    $("beduerfnisBesitzStatus");
-
-  if (status) {
-    status.classList.remove(
-      "erfuellt"
-    );
-
-    status.classList.add(
-      "offen"
-    );
-
-    status.textContent =
-      "Besitz-Modus: Aktivitätsübersicht der letzten 24 Monate. Für den gesetzlichen Besitznachweis muss mit einer eigenen erlaubnispflichtigen Waffe geschossen worden sein. Das wird im Schießbuch derzeit noch nicht getrennt erfasst.";
+  if ($("beduerfnisBesitzStatus")) {
+    $("beduerfnisBesitzStatus")
+      .textContent =
+        "Besitz-Modus: Aktivitätsübersicht der letzten 24 Monate. Für den gesetzlichen Besitznachweis muss mit einer eigenen erlaubnispflichtigen Waffe geschossen worden sein. Das wird im Schießbuch derzeit noch nicht getrennt erfasst.";
   }
 }
 
-/* =========================================================
-   BEDÜRFNIS – GESAMT
-   ========================================================= */
-
 function aktualisiereBeduerfnis() {
-  aktualisiereErwerb();
-  aktualisiereBesitz();
-
-  setzeBeduerfnisModus(
-    ladeBeduerfnisModus(),
-    false
-  );
+  renderErwerb();
+  renderBesitz();
 }
 
 /* =========================================================
@@ -1064,9 +1401,13 @@ function trainingVorbereiten(
     $("notizen").value = "";
   }
 
-  if (disziplin === "Praezision") {
-    $("formularTitel").textContent =
-      "Präzision";
+  if (
+    disziplin ===
+    "Praezision"
+  ) {
+    $("formularTitel")
+      .textContent =
+        "Präzision";
 
     $("praezisionFelder")
       ?.classList.remove(
@@ -1103,8 +1444,9 @@ function trainingVorbereiten(
     disziplin ===
     "Speedschiessen"
   ) {
-    $("formularTitel").textContent =
-      "BDS 25 m Speed";
+    $("formularTitel")
+      .textContent =
+        "BDS 25 m Speed";
 
     $("praezisionFelder")
       ?.classList.add(
@@ -1133,8 +1475,9 @@ function trainingVorbereiten(
     disziplin ===
     "Fallscheibe"
   ) {
-    $("formularTitel").textContent =
-      "BDS 25 m Fallscheibe";
+    $("formularTitel")
+      .textContent =
+        "BDS 25 m Fallscheibe";
 
     $("praezisionFelder")
       ?.classList.add(
@@ -1151,9 +1494,11 @@ function trainingVorbereiten(
         "versteckt"
       );
 
-    if ($("fallscheibeSerien")) {
-      $("fallscheibeSerien").value =
-        "4";
+    if (
+      $("fallscheibeSerien")
+    ) {
+      $("fallscheibeSerien")
+        .value = "4";
     }
 
     baueFallscheibenSerien();
@@ -1241,10 +1586,14 @@ $("ringe")?.addEventListener(
 
 function aktualisierePraezision() {
   const schuesse =
-    zahl($("schuesse")?.value);
+    zahl(
+      $("schuesse")?.value
+    );
 
   const ringe =
-    zahl($("ringe")?.value);
+    zahl(
+      $("ringe")?.value
+    );
 
   const max =
     schuesse * 10;
@@ -1256,15 +1605,17 @@ function aktualisierePraezision() {
 
   if ($("liveAuswertung")) {
     if (!schuesse) {
-      $("liveAuswertung").innerHTML =
-        "<strong>Auswertung:</strong> –";
+      $("liveAuswertung")
+        .innerHTML =
+          "<strong>Auswertung:</strong> –";
 
       return;
     }
 
-    $("liveAuswertung").innerHTML =
-      `<strong>${formatGanz(ringe)} / ${formatGanz(max)} Ringe</strong>` +
-      `<br>${formatZahl(prozent, 1)} %`;
+    $("liveAuswertung")
+      .innerHTML =
+        `<strong>${formatGanz(ringe)} / ${formatGanz(max)} Ringe</strong>` +
+        `<br>${formatZahl(prozent, 1)} %`;
   }
 }
 
@@ -1297,7 +1648,9 @@ function baueSpeedSerien() {
     serie++
   ) {
     const karte =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
     karte.className =
       "serie-karte";
@@ -1476,37 +1829,45 @@ function berechneSpeed() {
     ringeGesamt -
     zeitabzug;
 
-  if ($("speedTrefferGesamt")) {
+  if (
+    $("speedTrefferGesamt")
+  ) {
     const maxTreffer =
       serien.length * 5;
 
     $("speedTrefferGesamt")
       .textContent =
-      `${trefferGesamt} / ${maxTreffer}`;
+        `${trefferGesamt} / ${maxTreffer}`;
   }
 
-  if ($("speedRingeGesamt")) {
+  if (
+    $("speedRingeGesamt")
+  ) {
     $("speedRingeGesamt")
       .textContent =
-      ringeGesamt;
+        ringeGesamt;
   }
 
-  if ($("speedZeitGesamt")) {
+  if (
+    $("speedZeitGesamt")
+  ) {
     $("speedZeitGesamt")
       .textContent =
-      `${formatZahl(zeitGesamt)} s`;
+        `${formatZahl(zeitGesamt)} s`;
   }
 
-  if ($("speedZeitabzug")) {
+  if (
+    $("speedZeitabzug")
+  ) {
     $("speedZeitabzug")
       .textContent =
-      zeitabzug;
+        zeitabzug;
   }
 
   if ($("speedErgebnis")) {
     $("speedErgebnis")
       .textContent =
-      ergebnis;
+        ergebnis;
   }
 
   return {
@@ -1523,16 +1884,19 @@ function berechneSpeed() {
    FALLSCHEIBE
    ========================================================= */
 
-$("fallscheibeSerien")?.addEventListener(
-  "change",
-  baueFallscheibenSerien
-);
+$("fallscheibeSerien")
+  ?.addEventListener(
+    "change",
+    baueFallscheibenSerien
+  );
 
 function maxFallscheibenSchuesse() {
   const kaliber =
     $("kaliber")?.value;
 
-  return istKaliber22(kaliber)
+  return istKaliber22(
+    kaliber
+  )
     ? 10
     : 16;
 }
@@ -1545,7 +1909,8 @@ function baueFallscheibenSerien() {
 
   const anzahl =
     zahl(
-      $("fallscheibeSerien")?.value,
+      $("fallscheibeSerien")
+        ?.value,
       4
     );
 
@@ -1560,7 +1925,9 @@ function baueFallscheibenSerien() {
     serie++
   ) {
     const karte =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
     karte.className =
       "serie-karte";
@@ -1769,7 +2136,7 @@ function berechneFallscheibe() {
 
     $("fallscheibeGefallenGesamt")
       .textContent =
-      `${gefallenGesamt} / ${maxGefallen}`;
+        `${gefallenGesamt} / ${maxGefallen}`;
   }
 
   if (
@@ -1777,7 +2144,7 @@ function berechneFallscheibe() {
   ) {
     $("fallscheibeSchuesseGesamt")
       .textContent =
-      schuesseGesamt;
+        schuesseGesamt;
   }
 
   if (
@@ -1785,7 +2152,7 @@ function berechneFallscheibe() {
   ) {
     $("fallscheibeZeitGesamt")
       .textContent =
-      `${formatZahl(zeitGesamt)} s`;
+        `${formatZahl(zeitGesamt)} s`;
   }
 
   if (
@@ -1793,7 +2160,7 @@ function berechneFallscheibe() {
   ) {
     $("fallscheibeStrafzeit")
       .textContent =
-      `${formatZahl(strafzeit, 0)} s`;
+        `${formatZahl(strafzeit, 0)} s`;
   }
 
   if (
@@ -1801,7 +2168,7 @@ function berechneFallscheibe() {
   ) {
     $("fallscheibeGesamtzeit")
       .textContent =
-      `${formatZahl(gesamtzeit)} s`;
+        `${formatZahl(gesamtzeit)} s`;
   }
 
   return {
@@ -1818,10 +2185,11 @@ function berechneFallscheibe() {
    TRAINING SPEICHERN
    ========================================================= */
 
-$("trainingSpeichern")?.addEventListener(
-  "click",
-  trainingSpeichern
-);
+$("trainingSpeichern")
+  ?.addEventListener(
+    "click",
+    trainingSpeichern
+  );
 
 function trainingSpeichern() {
   const disziplin =
@@ -2001,7 +2369,9 @@ function trainingSpeichern() {
 
   if (!training) return;
 
-  trainings.push(training);
+  trainings.push(
+    training
+  );
 
   speichereTrainings();
 
@@ -2024,7 +2394,7 @@ function aktualisiereStartseite() {
   if ($("anzahlTrainings")) {
     $("anzahlTrainings")
       .textContent =
-      trainings.length;
+        trainings.length;
   }
 
   const disziplinen =
@@ -2034,10 +2404,12 @@ function aktualisiereStartseite() {
       )
     );
 
-  if ($("anzahlDisziplinen")) {
+  if (
+    $("anzahlDisziplinen")
+  ) {
     $("anzahlDisziplinen")
       .textContent =
-      disziplinen.size;
+        disziplinen.size;
   }
 }
 
@@ -2084,11 +2456,11 @@ function aktualisiereLeistungen() {
 
     $("homePraezisionBest")
       .textContent =
-      `${formatZahl(best, 1)} %`;
+        `${formatZahl(best, 1)} %`;
 
     $("homePraezisionDurchschnitt")
       .textContent =
-      `${formatZahl(durchschnitt, 1)} %`;
+        `${formatZahl(durchschnitt, 1)} %`;
   } else {
     $("homePraezisionBest")
       .textContent = "–";
@@ -2099,7 +2471,7 @@ function aktualisiereLeistungen() {
 
   $("homePraezisionTrainings")
     .textContent =
-    praezision.length;
+      praezision.length;
 
   if (speed.length) {
     const werte =
@@ -2118,14 +2490,17 @@ function aktualisiereLeistungen() {
 
     $("homeSpeedBest")
       .textContent =
-      formatZahl(best, 0);
+        formatZahl(
+          best,
+          0
+        );
 
     $("homeSpeedDurchschnitt")
       .textContent =
-      formatZahl(
-        durchschnitt,
-        1
-      );
+        formatZahl(
+          durchschnitt,
+          1
+        );
   } else {
     $("homeSpeedBest")
       .textContent = "–";
@@ -2136,7 +2511,7 @@ function aktualisiereLeistungen() {
 
   $("homeSpeedTrainings")
     .textContent =
-    speed.length;
+      speed.length;
 
   if (fall.length) {
     const werte =
@@ -2155,11 +2530,11 @@ function aktualisiereLeistungen() {
 
     $("homeFallscheibeBest")
       .textContent =
-      `${formatZahl(best)} s`;
+        `${formatZahl(best)} s`;
 
     $("homeFallscheibeDurchschnitt")
       .textContent =
-      `${formatZahl(durchschnitt)} s`;
+        `${formatZahl(durchschnitt)} s`;
   } else {
     $("homeFallscheibeBest")
       .textContent = "–";
@@ -2170,7 +2545,7 @@ function aktualisiereLeistungen() {
 
   $("homeFallscheibeTrainings")
     .textContent =
-    fall.length;
+      fall.length;
 
   aktualisiereLetztesTraining();
 }
@@ -2180,31 +2555,37 @@ function aktualisiereLeistungen() {
    ========================================================= */
 
 function sortierteTrainings() {
-  return [...trainings].sort(
-    (a, b) => {
-      const datumA =
-        new Date(
-          `${a.datum || "1970-01-01"}T12:00:00`
-        ).getTime();
+  return [...trainings]
+    .sort(
+      (a, b) => {
+        const datumA =
+          new Date(
+            `${a.datum || "1970-01-01"}T12:00:00`
+          ).getTime();
 
-      const datumB =
-        new Date(
-          `${b.datum || "1970-01-01"}T12:00:00`
-        ).getTime();
+        const datumB =
+          new Date(
+            `${b.datum || "1970-01-01"}T12:00:00`
+          ).getTime();
 
-      if (datumB !== datumA) {
-        return datumB - datumA;
+        if (
+          datumB !== datumA
+        ) {
+          return (
+            datumB -
+            datumA
+          );
+        }
+
+        return String(
+          b.erstelltAm || ""
+        ).localeCompare(
+          String(
+            a.erstelltAm || ""
+          )
+        );
       }
-
-      return String(
-        b.erstelltAm || ""
-      ).localeCompare(
-        String(
-          a.erstelltAm || ""
-        )
-      );
-    }
-  );
+    );
 }
 
 function aktualisiereLetztesTraining() {
@@ -2237,7 +2618,9 @@ function trainingErgebnisText(t) {
   const d =
     normaleDisziplin(t);
 
-  if (d === "Praezision") {
+  if (
+    d === "Praezision"
+  ) {
     return (
       `${formatGanz(praezisionRinge(t))} Ringe · ` +
       `${formatZahl(praezisionProzent(t), 1)} %`
@@ -2245,8 +2628,7 @@ function trainingErgebnisText(t) {
   }
 
   if (
-    d ===
-    "Speedschiessen"
+    d === "Speedschiessen"
   ) {
     return (
       `${formatGanz(speedErgebnisWert(t))} Punkte · ` +
@@ -2293,10 +2675,11 @@ $("filter")?.addEventListener(
   renderTrainingsbuch
 );
 
-$("filterDisziplin")?.addEventListener(
-  "change",
-  renderTrainingsbuch
-);
+$("filterDisziplin")
+  ?.addEventListener(
+    "change",
+    renderTrainingsbuch
+  );
 
 function renderTrainingsbuch() {
   const container =
@@ -2315,25 +2698,29 @@ function renderTrainingsbuch() {
     $("filterDisziplin")?.value ||
     "alle";
 
-  if (bereich !== "alle") {
-    daten = daten.filter(
-      t =>
-        trainingPasstZuBereich(
-          t,
-          bereich
-        )
-    );
+  if (
+    bereich !== "alle"
+  ) {
+    daten =
+      daten.filter(
+        t =>
+          trainingPasstZuBereich(
+            t,
+            bereich
+          )
+      );
   }
 
   if (
     disziplinFilter !==
     "alle"
   ) {
-    daten = daten.filter(
-      t =>
-        normaleDisziplin(t) ===
-        disziplinFilter
-    );
+    daten =
+      daten.filter(
+        t =>
+          normaleDisziplin(t) ===
+          disziplinFilter
+      );
   }
 
   if (!daten.length) {
@@ -2348,7 +2735,9 @@ function renderTrainingsbuch() {
 
   container.innerHTML =
     daten
-      .map(trainingVollHTML)
+      .map(
+        trainingVollHTML
+      )
       .join("");
 
   container
@@ -2360,7 +2749,8 @@ function renderTrainingsbuch() {
         "click",
         () => {
           loescheTraining(
-            button.dataset.loeschen
+            button.dataset
+              .loeschen
           );
         }
       );
@@ -2373,7 +2763,9 @@ function trainingVollHTML(t) {
 
   let details = "";
 
-  if (d === "Praezision") {
+  if (
+    d === "Praezision"
+  ) {
     details = `
       <div class="training-details">
         <div>
@@ -2400,8 +2792,7 @@ function trainingVollHTML(t) {
   }
 
   if (
-    d ===
-    "Speedschiessen"
+    d === "Speedschiessen"
   ) {
     details = `
       <div class="training-details">
@@ -2431,8 +2822,7 @@ function trainingVollHTML(t) {
   }
 
   if (
-    d ===
-    "Fallscheibe"
+    d === "Fallscheibe"
   ) {
     details = `
       <div class="training-details">
@@ -2532,8 +2922,12 @@ function serienHTML(t) {
               <strong>Serie ${index + 1}</strong>
               <span>
                 ${
-                  Array.isArray(werte)
-                    ? werte.join(" · ")
+                  Array.isArray(
+                    werte
+                  )
+                    ? werte.join(
+                        " · "
+                      )
                     : ""
                 }
                 · ${formatGanz(serie.ringe)} Ringe
@@ -2582,7 +2976,9 @@ function loescheTraining(id) {
       `${datumDeutsch(training.datum)} – ${disziplinName(training)} wirklich löschen?`
     );
 
-  if (!bestaetigt) return;
+  if (!bestaetigt) {
+    return;
+  }
 
   trainings =
     trainings.filter(
@@ -2602,35 +2998,40 @@ function loescheTraining(id) {
    DIAGRAMM – FILTER
    ========================================================= */
 
-$("diagrammBereich")?.addEventListener(
-  "change",
-  () => {
-    aktualisiereDiagrammFilter();
-    zeichneDiagramm();
-  }
-);
+$("diagrammBereich")
+  ?.addEventListener(
+    "change",
+    () => {
+      aktualisiereDiagrammFilter();
+      zeichneDiagramm();
+    }
+  );
 
-$("diagrammDisziplin")?.addEventListener(
-  "change",
-  () => {
-    aktualisiereDiagrammFilter();
-    zeichneDiagramm();
-  }
-);
+$("diagrammDisziplin")
+  ?.addEventListener(
+    "change",
+    () => {
+      aktualisiereDiagrammFilter();
+      zeichneDiagramm();
+    }
+  );
 
-$("diagrammEntfernung")?.addEventListener(
-  "change",
-  zeichneDiagramm
-);
+$("diagrammEntfernung")
+  ?.addEventListener(
+    "change",
+    zeichneDiagramm
+  );
 
-$("diagrammSchuesse")?.addEventListener(
-  "change",
-  zeichneDiagramm
-);
+$("diagrammSchuesse")
+  ?.addEventListener(
+    "change",
+    zeichneDiagramm
+  );
 
 function aktualisiereDiagrammFilter() {
   const disziplin =
-    $("diagrammDisziplin")?.value ||
+    $("diagrammDisziplin")
+      ?.value ||
     "Praezision";
 
   if (
@@ -2654,27 +3055,33 @@ function diagrammDatenFiltern() {
     [...trainings];
 
   const bereich =
-    $("diagrammBereich")?.value ||
+    $("diagrammBereich")
+      ?.value ||
     "alle";
 
   const disziplin =
-    $("diagrammDisziplin")?.value ||
+    $("diagrammDisziplin")
+      ?.value ||
     "Praezision";
 
-  daten = daten.filter(
-    t =>
-      normaleDisziplin(t) ===
-      disziplin
-  );
-
-  if (bereich !== "alle") {
-    daten = daten.filter(
+  daten =
+    daten.filter(
       t =>
-        trainingPasstZuBereich(
-          t,
-          bereich
-        )
+        normaleDisziplin(t) ===
+        disziplin
     );
+
+  if (
+    bereich !== "alle"
+  ) {
+    daten =
+      daten.filter(
+        t =>
+          trainingPasstZuBereich(
+            t,
+            bereich
+          )
+      );
   }
 
   if (
@@ -2692,29 +3099,33 @@ function diagrammDatenFiltern() {
       "alle";
 
     if (
-      entfernung !==
-      "alle"
+      entfernung !== "alle"
     ) {
-      daten = daten.filter(
-        t =>
-          String(
-            t.entfernung ?? 25
-          ) ===
-          String(entfernung)
-      );
+      daten =
+        daten.filter(
+          t =>
+            String(
+              t.entfernung ?? 25
+            ) ===
+            String(
+              entfernung
+            )
+        );
     }
 
     if (
-      schuesse !==
-      "alle"
+      schuesse !== "alle"
     ) {
-      daten = daten.filter(
-        t =>
-          String(
-            praezisionSchuesse(t)
-          ) ===
-          String(schuesse)
-      );
+      daten =
+        daten.filter(
+          t =>
+            String(
+              praezisionSchuesse(t)
+            ) ===
+            String(
+              schuesse
+            )
+        );
     }
   }
 
@@ -2755,7 +3166,10 @@ function zeichneDiagramm() {
   const datenText =
     $("diagrammDaten");
 
-  if (!svg || !punkte) {
+  if (
+    !svg ||
+    !punkte
+  ) {
     return;
   }
 
@@ -2788,7 +3202,8 @@ function zeichneDiagramm() {
   );
 
   const disziplin =
-    $("diagrammDisziplin")?.value ||
+    $("diagrammDisziplin")
+      ?.value ||
     "Praezision";
 
   const werte =
@@ -2797,17 +3212,23 @@ function zeichneDiagramm() {
         disziplin ===
         "Praezision"
       ) {
-        return praezisionProzent(t);
+        return praezisionProzent(
+          t
+        );
       }
 
       if (
         disziplin ===
         "Speedschiessen"
       ) {
-        return speedErgebnisWert(t);
+        return speedErgebnisWert(
+          t
+        );
       }
 
-      return fallGesamtzeitWert(t);
+      return fallGesamtzeitWert(
+        t
+      );
     });
 
   aktualisiereDiagrammKennzahlen(
@@ -2831,12 +3252,15 @@ function zeichneDiagramm() {
   ) {
     min = 0;
     max = 100;
-  } else if (min === max) {
+  } else if (
+    min === max
+  ) {
     min -= 1;
     max += 1;
   } else {
     const puffer =
-      (max - min) * 0.15;
+      (max - min) *
+      0.15;
 
     min -= puffer;
     max += puffer;
@@ -2869,10 +3293,12 @@ function zeichneDiagramm() {
         max === min
           ? 0.5
           : (
-              wert - min
+              wert -
+              min
             ) /
             (
-              max - min
+              max -
+              min
             );
 
       return (
@@ -2891,9 +3317,12 @@ function zeichneDiagramm() {
       (wert, index) => ({
         x:
           xFuerIndex(index),
+
         y:
           yFuerWert(wert),
+
         wert,
+
         training:
           daten[index]
       })
@@ -2906,9 +3335,7 @@ function zeichneDiagramm() {
 
   svg.innerHTML = `
     <polyline
-      points="${koordinaten.map(
-        p => `${p.x},${p.y}`
-      ).join(" ")}"
+      points="${koordinaten.map(p => `${p.x},${p.y}`).join(" ")}"
       fill="none"
       stroke="currentColor"
       stroke-width="6"
@@ -2978,13 +3405,18 @@ function aktualisiereDiagrammSkala(
       "span"
     );
 
-  if (!spans.length) return;
+  if (!spans.length) {
+    return;
+  }
 
   const werte = [
     max,
-    min + (max - min) * 0.75,
-    min + (max - min) * 0.5,
-    min + (max - min) * 0.25,
+    min +
+      (max - min) * 0.75,
+    min +
+      (max - min) * 0.5,
+    min +
+      (max - min) * 0.25,
     min
   ];
 
@@ -3028,23 +3460,17 @@ function diagrammWertText(
     disziplin ===
     "Praezision"
   ) {
-    return (
-      `${formatZahl(wert, 1)} %`
-    );
+    return `${formatZahl(wert, 1)} %`;
   }
 
   if (
     disziplin ===
     "Fallscheibe"
   ) {
-    return (
-      `${formatZahl(wert)} s`
-    );
+    return `${formatZahl(wert)} s`;
   }
 
-  return (
-    `${formatZahl(wert, 0)} Punkte`
-  );
+  return `${formatZahl(wert, 0)} Punkte`;
 }
 
 /* =========================================================
@@ -3055,16 +3481,21 @@ function aktualisiereDiagrammKennzahlen(
   werte
 ) {
   const disziplin =
-    $("diagrammDisziplin")?.value ||
+    $("diagrammDisziplin")
+      ?.value ||
     "Praezision";
 
   if (!werte.length) {
-    if ($("diagrammLetzte")) {
+    if (
+      $("diagrammLetzte")
+    ) {
       $("diagrammLetzte")
         .textContent = "–";
     }
 
-    if ($("diagrammBeste")) {
+    if (
+      $("diagrammBeste")
+    ) {
       $("diagrammBeste")
         .textContent = "–";
     }
@@ -3076,10 +3507,12 @@ function aktualisiereDiagrammKennzahlen(
         .textContent = "–";
     }
 
-    if ($("diagrammAnzahl")) {
+    if (
+      $("diagrammAnzahl")
+    ) {
       $("diagrammAnzahl")
         .textContent =
-        "0 Trainings";
+          "0 Trainings";
     }
 
     return;
@@ -3102,22 +3535,26 @@ function aktualisiereDiagrammKennzahlen(
       0
     ) / werte.length;
 
-  if ($("diagrammLetzte")) {
+  if (
+    $("diagrammLetzte")
+  ) {
     $("diagrammLetzte")
       .textContent =
-      diagrammWertText(
-        letzte,
-        disziplin
-      );
+        diagrammWertText(
+          letzte,
+          disziplin
+        );
   }
 
-  if ($("diagrammBeste")) {
+  if (
+    $("diagrammBeste")
+  ) {
     $("diagrammBeste")
       .textContent =
-      diagrammWertText(
-        beste,
-        disziplin
-      );
+        diagrammWertText(
+          beste,
+          disziplin
+        );
   }
 
   if (
@@ -3125,20 +3562,22 @@ function aktualisiereDiagrammKennzahlen(
   ) {
     $("diagrammDurchschnitt")
       .textContent =
-      diagrammWertText(
-        durchschnitt,
-        disziplin
-      );
+        diagrammWertText(
+          durchschnitt,
+          disziplin
+        );
   }
 
-  if ($("diagrammAnzahl")) {
+  if (
+    $("diagrammAnzahl")
+  ) {
     $("diagrammAnzahl")
       .textContent =
-      `${werte.length} ${
-        werte.length === 1
-          ? "Training"
-          : "Trainings"
-      }`;
+        `${werte.length} ${
+          werte.length === 1
+            ? "Training"
+            : "Trainings"
+        }`;
   }
 
   if (
@@ -3146,7 +3585,7 @@ function aktualisiereDiagrammKennzahlen(
   ) {
     $("diagrammLetzteTitel")
       .textContent =
-      "Letztes";
+        "Letztes";
   }
 
   if (
@@ -3154,10 +3593,10 @@ function aktualisiereDiagrammKennzahlen(
   ) {
     $("diagrammBesteTitel")
       .textContent =
-      disziplin ===
+        disziplin ===
         "Fallscheibe"
-        ? "Beste Zeit"
-        : "Bestwert";
+          ? "Beste Zeit"
+          : "Bestwert";
   }
 
   if (
@@ -3165,7 +3604,7 @@ function aktualisiereDiagrammKennzahlen(
   ) {
     $("diagrammDurchschnittTitel")
       .textContent =
-      "Durchschnitt";
+        "Durchschnitt";
   }
 }
 
@@ -3173,10 +3612,11 @@ function aktualisiereDiagrammKennzahlen(
    BACKUP EXPORT
    ========================================================= */
 
-$("backupExportieren")?.addEventListener(
-  "click",
-  backupExportieren
-);
+$("backupExportieren")
+  ?.addEventListener(
+    "click",
+    backupExportieren
+  );
 
 function backupExportieren() {
   const backup = {
@@ -3240,7 +3680,7 @@ function backupExportieren() {
   if ($("backupStatus")) {
     $("backupStatus")
       .textContent =
-      `${trainings.length} Trainings wurden exportiert.`;
+        `${trainings.length} Trainings wurden exportiert.`;
   }
 }
 
@@ -3248,17 +3688,20 @@ function backupExportieren() {
    BACKUP IMPORT
    ========================================================= */
 
-$("backupImportieren")?.addEventListener(
-  "click",
-  () => {
-    $("backupDatei")?.click();
-  }
-);
+$("backupImportieren")
+  ?.addEventListener(
+    "click",
+    () => {
+      $("backupDatei")
+        ?.click();
+    }
+  );
 
-$("backupDatei")?.addEventListener(
-  "change",
-  backupImportieren
-);
+$("backupDatei")
+  ?.addEventListener(
+    "change",
+    backupImportieren
+  );
 
 async function backupImportieren(
   event
@@ -3317,22 +3760,28 @@ async function backupImportieren(
 
     aktualisiereAlles();
 
-    if ($("backupStatus")) {
+    if (
+      $("backupStatus")
+    ) {
       $("backupStatus")
         .textContent =
-        `${trainings.length} Trainings erfolgreich wiederhergestellt.`;
+          `${trainings.length} Trainings erfolgreich wiederhergestellt.`;
     }
 
     alert(
       `${trainings.length} Trainings wurden wiederhergestellt. ✅`
     );
   } catch (fehler) {
-    console.error(fehler);
+    console.error(
+      fehler
+    );
 
-    if ($("backupStatus")) {
+    if (
+      $("backupStatus")
+    ) {
       $("backupStatus")
         .textContent =
-        "Backup konnte nicht importiert werden.";
+          "Backup konnte nicht importiert werden.";
     }
 
     alert(
@@ -3364,14 +3813,16 @@ function initialisieren() {
       heuteISO();
   }
 
-  setzeBeduerfnisModus(
-    ladeBeduerfnisModus(),
-    false
-  );
-
   aktualisiereAlles();
 
   aktualisiereDiagrammFilter();
+
+  const gespeicherterModus =
+    ladeBeduerfnisModus();
+
+  setzeBeduerfnisModus(
+    gespeicherterModus
+  );
 
   zeigeSeite(
     "startseite"
