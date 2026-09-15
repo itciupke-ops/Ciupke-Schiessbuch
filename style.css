@@ -2440,3 +2440,37 @@ textarea {
   .fotoauswertung-kopf { align-items: flex-start; flex-direction: column; }
   .foto-button { width: 100%; }
 }
+
+
+/* =========================================================
+   FOTOAUSWERTUNG – KAMERA / GALERIE
+========================================================= */
+.fotoaktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  justify-content: flex-end;
+}
+
+.foto-button-sekundaer {
+  border-color: var(--line);
+  background: var(--card2);
+  color: var(--white);
+}
+
+@media (max-width: 520px) {
+  .fotoauswertung-kopf {
+    align-items: flex-start;
+  }
+
+  .fotoaktionen {
+    width: 100%;
+    margin-top: 12px;
+    justify-content: stretch;
+  }
+
+  .fotoaktionen .foto-button {
+    flex: 1 1 145px;
+    text-align: center;
+  }
+}

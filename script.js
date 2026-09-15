@@ -3928,8 +3928,10 @@ function verbindeFotoEingabe(inputId, bildId, statusId) {
   });
 }
 
-verbindeFotoEingabe("praezisionFoto", "praezisionFotoVorschau", "praezisionFotoStatus");
-verbindeFotoEingabe("speedFoto", "speedFotoVorschau", "speedFotoStatus");
+verbindeFotoEingabe("praezisionFotoKamera", "praezisionFotoVorschau", "praezisionFotoStatus");
+verbindeFotoEingabe("praezisionFotoGalerie", "praezisionFotoVorschau", "praezisionFotoStatus");
+verbindeFotoEingabe("speedFotoKamera", "speedFotoVorschau", "speedFotoStatus");
+verbindeFotoEingabe("speedFotoGalerie", "speedFotoVorschau", "speedFotoStatus");
 
 function initialisieren() {
   if ($("datum")) {

@@ -682,9 +682,13 @@
           <strong>📷 Scheibe fotografieren</strong>
           <small>Fotoauswertung · Beta</small>
         </div>
-        <label class="foto-button" for="praezisionFoto">Foto aufnehmen</label>
+        <div class="fotoaktionen">
+          <label class="foto-button" for="praezisionFotoKamera">📷 Foto aufnehmen</label>
+          <label class="foto-button foto-button-sekundaer" for="praezisionFotoGalerie">🖼️ Foto auswählen</label>
+        </div>
       </div>
-      <input id="praezisionFoto" class="foto-input" type="file" accept="image/*" capture="environment">
+      <input id="praezisionFotoKamera" class="foto-input" type="file" accept="image/*" capture="environment">
+      <input id="praezisionFotoGalerie" class="foto-input" type="file" accept="image/*">
       <img id="praezisionFotoVorschau" class="foto-vorschau versteckt" alt="Aufgenommene Präzisionsscheibe">
       <div id="praezisionFotoStatus" class="foto-status">Noch kein Foto aufgenommen.</div>
     </div>
@@ -749,9 +753,13 @@
           <strong>📷 Speed-Scheiben fotografieren</strong>
           <small>Fotoauswertung · Beta</small>
         </div>
-        <label class="foto-button" for="speedFoto">Foto aufnehmen</label>
+        <div class="fotoaktionen">
+          <label class="foto-button" for="speedFotoKamera">📷 Foto aufnehmen</label>
+          <label class="foto-button foto-button-sekundaer" for="speedFotoGalerie">🖼️ Foto auswählen</label>
+        </div>
       </div>
-      <input id="speedFoto" class="foto-input" type="file" accept="image/*" capture="environment">
+      <input id="speedFotoKamera" class="foto-input" type="file" accept="image/*" capture="environment">
+      <input id="speedFotoGalerie" class="foto-input" type="file" accept="image/*">
       <img id="speedFotoVorschau" class="foto-vorschau versteckt" alt="Aufgenommene Speed-Scheiben">
       <div id="speedFotoStatus" class="foto-status">Noch kein Foto aufgenommen.</div>
     </div>
