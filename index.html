@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#08090b">
+
+  <title>Ciupke · Mein Schießbuch</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+
+
+<!-- ======================================================
+     STARTSEITE
+====================================================== -->
+
+<main id="startseite">
+
+  <!-- CIUPKE HEADER -->
+
+  <header class="brand-header">
+
+    <div
+      id="ciupkeLogo"
+      class="brand-logo"
+      aria-label="Ciupke Logo"
+    ></div>
+
+    <div class="brand-text">
+
+      <div class="brand-name">
+        CIUPKE
+      </div>
+
+      <div class="brand-title">
+        MEIN SCHIESSBUCH
+      </div>
+
+      <div class="brand-subtitle">
+        Training · Ergebnisse · Entwicklung
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- WILLKOMMENSBEREICH -->
+
+  <section class="start-hero">
+
+    <span class="start-kicker">
+      MEIN TRAINING
+    </span>
+
+    <h1>
+      Schießbuch
+    </h1>
+
+    <p>
+      Training dokumentieren.<br>
+      Leistung verfolgen.
+    </p>
+
+
+    <div class="start-statistik">
+
+      <div>
+
+        <strong id="anzahlTrainings">
+          0
+        </strong>
+
+        <span>
+          Trainings
+        </span>
+
+      </div>
+
+
+      <div class="start-statistik-trenner"></div>
+
+
+      <div>
+
+        <strong id="anzahlDisziplinen">
+          0
+        </strong>
+
+        <span>
+          Disziplinen
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- HAUPTAKTION -->
+
+  <button
+    id="neuesTraining"
+    class="hauptbutton start-training-button"
+  >
+
+    <span class="hauptbutton-icon">
+      +
+    </span>
+
+    <span>
+      NEUES TRAINING
+    </span>
+
+  </button>
+
+
+  <!-- NAVIGATION -->
+
+  <section class="start-navigation">
+
+    <div class="bereich-titel">
+
+      <span>
+        MENÜ
+      </span>
+
+      <h2>
+        Was möchtest du machen?
+      </h2>
+
+    </div>
+
+
+    <button
+      id="leistungenOeffnen"
+      class="menu-card"
+    >
+
+      <span class="menu-icon">
+        🏆
+      </span>
+
+      <span class="menu-text">
+
+        <strong>
+          Meine Leistungen
+        </strong>
+
+        <small>
+          Bestwerte & Durchschnitt
+        </small>
+
+      </span>
+
+      <span class="menu-pfeil">
+        ›
+      </span>
+
+    </button>
+
+
+    <button
+      id="entwicklungOeffnen"
+      class="menu-card"
+    >
+
+      <span class="menu-icon">
+        📈
+      </span>
+
+      <span class="menu-text">
+
+        <strong>
+          Entwicklung
+        </strong>
+
+        <small>
+          Fortschritt im Diagramm
+        </small>
+
+      </span>
+
+      <span class="menu-pfeil">
+        ›
+      </span>
+
+    </button>
+
+
+    <button
+      id="trainingsbuchOeffnen"
+      class="menu-card"
+    >
+
+      <span class="menu-icon">
+        📋
+      </span>
+
+      <span class="menu-text">
+
+        <strong>
+          Trainingsbuch
+        </strong>
+
+        <small>
+          Alle Trainingseinträge
+        </small>
+
+      </span>
+
+      <span class="menu-pfeil">
+        ›
+      </span>
+
+    </button>
+
+
+    <button
+      id="backupOeffnen"
+      class="menu-card"
+    >
+
+      <span class="menu-icon">
+        💾
+      </span>
+
+      <span class="menu-text">
+
+        <strong>
+          Datensicherung
+        </strong>
+
+        <small>
+          Backup erstellen & wiederherstellen
+        </small>
+
+      </span>
+
+      <span class="menu-pfeil">
+        ›
+      </span>
+
+    </button>
+
+  </section>
+
+
+  <footer class="app-footer">
+
+    <strong>
+      CIUPKE
+    </strong>
+
+    <span>
+      MEIN SCHIESSBUCH
+    </span>
+
+  </footer>
+
+</main>
+
+
+
+<!-- ======================================================
+     DISZIPLIN AUSWÄHLEN
+====================================================== -->
+
+<main
+  id="disziplinAuswahl"
+  class="versteckt"
+>
+
+  <header class="unterseite-header">
+
+    <button
+      id="disziplinAuswahlZurueck"
+      class="zurueck"
+    >
+      ←
+    </button>
+
+
+    <div>
+
+      <span>
+        NEUES TRAINING
+      </span>
+
+      <h1>
+        Disziplin wählen
+      </h1>
+
+    </div>
+
+  </header>
+
+
+  <p class="seitenbeschreibung">
+    Welche Disziplin möchtest du heute trainieren?
+  </p>
+
+
+  <!-- PRÄZISION -->
+
+  <button
+    class="disziplin-auswahl-card"
+    data-disziplin="Praezision"
+  >
+
+    <span class="disziplin-auswahl-icon">
+      🎯
+    </span>
+
+
+    <span class="disziplin-auswahl-text">
+
+      <small>
+        BDS · KURZWAFFE
+      </small>
+
+      <strong>
+        Präzision
+      </strong>
+
+      <span>
+        Ringwertung & Prozent
+      </span>
+
+    </span>
+
+
+    <span class="menu-pfeil">
+      ›
+    </span>
+
+  </button>
+
+
+  <!-- SPEED -->
+
+  <button
+    class="disziplin-auswahl-card"
+    data-disziplin="Speedschiessen"
+  >
+
+    <span class="disziplin-auswahl-icon">
+      ⚡
+    </span>
+
+
+    <span class="disziplin-auswahl-text">
+
+      <small>
+        BDS · 25 M
+      </small>
+
+      <strong>
+        Speed
+      </strong>
+
+      <span>
+        5 Scheiben · Ring- & Zeitwertung
+      </span>
+
+    </span>
+
+
+    <span class="menu-pfeil">
+      ›
+    </span>
+
+  </button>
+
+
+  <!-- FALLSCHEIBE -->
+
+  <button
+    class="disziplin-auswahl-card"
+    data-disziplin="Fallscheibe"
+  >
+
+    <span class="disziplin-auswahl-icon">
+      🔔
+    </span>
+
+
+    <span class="disziplin-auswahl-text">
+
+      <small>
+        BDS · 25 M
+      </small>
+
+      <strong>
+        Fallscheibe
+      </strong>
+
+      <span>
+        Zeitwertung & Strafzeit
+      </span>
+
+    </span>
+
+
+    <span class="menu-pfeil">
+      ›
+    </span>
+
+  </button>
+
+
+  <div class="auswahl-hinweis">
+
+    <span>
+      ℹ️
+    </span>
+
+    <p>
+      Nach der Auswahl werden nur die Eingabefelder
+      angezeigt, die du für diese Disziplin brauchst.
+    </p>
+
+  </div>
+
+</main>
+
+
+
+<!-- ======================================================
+     NEUES TRAINING
+====================================================== -->
+
+<main
+  id="trainingFormular"
+  class="versteckt"
+>
+
+  <header class="unterseite-header">
+
+    <button
+      id="zurueck"
+      class="zurueck"
+    >
+      ←
+    </button>
+
+
+    <div>
+
+      <span>
+        NEUES TRAINING
+      </span>
+
+      <h1 id="formularTitel">
+        Training erfassen
+      </h1>
+
+    </div>
+
+  </header>
+
+
+  <!-- ALLGEMEINE DATEN -->
+
+  <section class="formular-block">
+
+    <div class="formular-block-titel">
+      TRAININGSDATEN
+    </div>
+
+
+    <label for="datum">
+      Datum
+    </label>
+
+    <input
+      type="date"
+      id="datum"
+    >
+
+
+    <label for="waffenart">
+      Waffenart
+    </label>
+
+    <select id="waffenart">
+
+      <option value="Kurzwaffe">
+        Kurzwaffe
+      </option>
+
+      <option value="Langwaffe">
+        Langwaffe
+      </option>
+
+    </select>
+
+
+    <label for="kaliber">
+      Kaliber
+    </label>
+
+    <select id="kaliber">
+
+      <option value="9 mm">
+        9 mm
+      </option>
+
+      <option value=".22 l.r.">
+        .22 l.r.
+      </option>
+
+    </select>
+
+
+    <label for="waffe">
+      Waffe
+    </label>
+
+    <input
+      type="text"
+      id="waffe"
+      placeholder="z.B. Vereinswaffe"
+      autocomplete="off"
+    >
+
+
+    <!-- Wird vom JavaScript gesetzt -->
+
+    <label
+      for="disziplin"
+      class="versteckt"
+    >
+      Disziplin
+    </label>
+
+    <select
+      id="disziplin"
+      class="versteckt"
+    >
+
+      <option value="Praezision">
+        Präzision
+      </option>
+
+      <option value="Speedschiessen">
+        Speed
+      </option>
+
+      <option value="Fallscheibe">
+        Fallscheibe
+      </option>
+
+    </select>
+
+  </section>
+
+
+
+  <!-- ==================================================
+       PRÄZISION
+  ================================================== -->
+
+  <section
+    id="praezisionFelder"
+    class="versteckt"
+  >
+
+    <div class="formular-disziplin-kopf">
+
+      <div class="formular-symbol">
+        🎯
+      </div>
+
+      <div>
+
+        <small>
+          DISZIPLIN
+        </small>
+
+        <strong>
+          PRÄZISION
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <label for="entfernung">
+      Entfernung
+    </label>
+
+    <select id="entfernung">
+
+      <option value="25 m">
+        25 m
+      </option>
+
+      <option value="50 m">
+        50 m
+      </option>
+
+    </select>
+
+
+    <label for="schuesse">
+      Anzahl Schüsse
+    </label>
+
+    <input
+      type="number"
+      id="schuesse"
+      min="1"
+      inputmode="numeric"
+      placeholder="z.B. 20"
+    >
+
+
+    <label for="ringe">
+      Ringzahl
+    </label>
+
+    <input
+      type="number"
+      id="ringe"
+      min="0"
+      inputmode="numeric"
+      placeholder="z.B. 175"
+    >
+
+
+    <div
+      id="liveAuswertung"
+      class="live-auswertung"
+    >
+      Maximalringe und Prozent werden automatisch berechnet.
+    </div>
+
+  </section>
+
+
+
+  <!-- ==================================================
+       SPEED
+  ================================================== -->
+
+  <section
+    id="speedFelder"
+    class="versteckt"
+  >
+
+    <div class="formular-disziplin-kopf">
+
+      <div class="formular-symbol">
+        ⚡
+      </div>
+
+      <div>
+
+        <small>
+          BDS · 25 M
+        </small>
+
+        <strong>
+          SPEED
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <label for="speedSerien">
+      Anzahl Serien
+    </label>
+
+    <select id="speedSerien">
+
+      <option value="4">
+        4 Serien · 20 Schuss
+      </option>
+
+      <option value="6">
+        6 Serien · 30 Schuss
+      </option>
+
+    </select>
+
+
+    <div
+      id="speedSerienContainer"
+      class="serien-container"
+    ></div>
+
+
+    <div class="live-auswertung ergebnis-box">
+
+      <div class="auswertung-zeile">
+
+        <span>
+          Treffer
+        </span>
+
+        <strong id="speedTrefferGesamt">
+          0 / 20
+        </strong>
+
+      </div>
+
+
+      <div class="auswertung-zeile">
+
+        <span>
+          Ringe gesamt
+        </span>
+
+        <strong id="speedRingeGesamt">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="auswertung-zeile">
+
+        <span>
+          Zeit gesamt
+        </span>
+
+        <strong id="speedZeitGesamt">
+          0,00 s
+        </strong>
+
+      </div>
+
+
+      <div class="auswertung-zeile">
+
+        <span>
+          Zeitabzug
+        </span>
+
+        <strong id="speedZeitabzug">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="auswertung-zeile ergebnis-hervorheben">
+
+        <span>
+          BDS-Ergebnis
+        </span>
+
+        <strong id="speedErgebnis">
+          0
+        </strong>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- ==================================================
+       FALLSCHEIBE
+  ================================================== -->
+
+  <section
+    id="fallscheibeFelder"
+    class="versteckt"
+  >
+
+    <div class="formular-disziplin-kopf">
+
+      <div class="formular-symbol">
+        🔔
+      </div>
+
+      <div>
+
+        <small>
+          BDS · 25 M
+        </small>
+
+        <strong>
+          FALLSCHEIBE
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <label for="fallscheibeSerien">
+      Anzahl Serien
+    </label>
+
+    <select id="fallscheibeSerien">
+
+      <option value="4">
+        4 Serien
+      </option>
+
+      <option value="6">
+        6 Serien
+      </option>
+
+    </select>
+
+
+    <div
+      id="fallscheibeSerienContainer"
+      class="serien-container"
+    ></div>
+
+
+    <div class="live-auswertung ergebnis-box">
+
+      <div class="auswertung-zeile">
+
+        <span>
+          Gefallene Scheiben
+        </span>
+
+        <strong id="fallscheibeGefallenGesamt">
+          0 / 20
+        </strong>
+
+      </div>
+
+
+      <div class="auswertung-zeile">
+
+        <span>
+          Schüsse gesamt
+        </span>
+
+        <strong id="fallscheibeSchuesseGesamt">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="auswertung-zeile">
+
+        <span>
+          Reine Zeit
+        </span>
+
+        <strong id="fallscheibeZeitGesamt">
+          0,00 s
+        </strong>
+
+      </div>
+
+
+      <div class="auswertung-zeile">
+
+        <span>
+          Strafzeit
+        </span>
+
+        <strong id="fallscheibeStrafzeit">
+          0,00 s
+        </strong>
+
+      </div>
+
+
+      <div class="auswertung-zeile ergebnis-hervorheben">
+
+        <span>
+          Gesamtzeit
+        </span>
+
+        <strong id="fallscheibeGesamtzeit">
+          0,00 s
+        </strong>
+
+      </div>
+
+
+      <small class="wertung-hinweis">
+        Je niedriger die Gesamtzeit, desto besser.
+      </small>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- NOTIZEN -->
+
+  <section class="formular-block notizen-block">
+
+    <div class="formular-block-titel">
+      NOTIZEN
+    </div>
+
+
+    <textarea
+      id="notizen"
+      placeholder="Wie lief das Training?"
+    ></textarea>
+
+  </section>
+
+
+  <button
+    id="trainingSpeichern"
+    class="hauptbutton"
+  >
+    TRAINING SPEICHERN
+  </button>
+
+</main>
+
+
+
+<!-- ======================================================
+     MEINE LEISTUNGEN
+====================================================== -->
+
+<main
+  id="leistungsseite"
+  class="versteckt"
+>
+
+  <header class="unterseite-header">
+
+    <button
+      id="leistungenZurueck"
+      class="zurueck"
+    >
+      ←
+    </button>
+
+
+    <div>
+
+      <span>
+        ÜBERSICHT
+      </span>
+
+      <h1>
+        Meine Leistungen
+      </h1>
+
+    </div>
+
+  </header>
+
+
+  <p class="seitenbeschreibung">
+    Deine persönlichen Ergebnisse nach Disziplin.
+  </p>
+
+
+
+  <!-- PRÄZISION -->
+
+  <article class="disziplin-card">
+
+    <div class="disziplin-card-header">
+
+      <div class="disziplin-icon">
+        🎯
+      </div>
+
+      <div class="disziplin-card-name">
+
+        <span>
+          DISZIPLIN
+        </span>
+
+        <h3>
+          PRÄZISION
+        </h3>
+
+      </div>
+
+    </div>
+
+
+    <div class="disziplin-bestwert">
+
+      <span>
+        PERSÖNLICHE BESTLEISTUNG
+      </span>
+
+      <strong id="homePraezisionBest">
+        –
+      </strong>
+
+    </div>
+
+
+    <div class="disziplin-stats">
+
+      <div>
+
+        <span>
+          Ø LEISTUNG
+        </span>
+
+        <strong id="homePraezisionDurchschnitt">
+          –
+        </strong>
+
+      </div>
+
+
+      <div>
+
+        <span>
+          TRAININGS
+        </span>
+
+        <strong id="homePraezisionTrainings">
+          0
+        </strong>
+
+      </div>
+
+    </div>
+
+  </article>
+
+
+
+  <!-- SPEED -->
+
+  <article class="disziplin-card">
+
+    <div class="disziplin-card-header">
+
+      <div class="disziplin-icon">
+        ⚡
+      </div>
+
+      <div class="disziplin-card-name">
+
+        <span>
+          BDS · 25 M
+        </span>
+
+        <h3>
+          SPEED
+        </h3>
+
+      </div>
+
+    </div>
+
+
+    <div class="disziplin-bestwert">
+
+      <span>
+        PERSÖNLICHER BESTWERT
+      </span>
+
+      <strong id="homeSpeedBest">
+        –
+      </strong>
+
+    </div>
+
+
+    <div class="disziplin-stats">
+
+      <div>
+
+        <span>
+          Ø ERGEBNIS
+        </span>
+
+        <strong id="homeSpeedDurchschnitt">
+          –
+        </strong>
+
+      </div>
+
+
+      <div>
+
+        <span>
+          TRAININGS
+        </span>
+
+        <strong id="homeSpeedTrainings">
+          0
+        </strong>
+
+      </div>
+
+    </div>
+
+  </article>
+
+
+
+  <!-- FALLSCHEIBE -->
+
+  <article class="disziplin-card">
+
+    <div class="disziplin-card-header">
+
+      <div class="disziplin-icon">
+        🔔
+      </div>
+
+      <div class="disziplin-card-name">
+
+        <span>
+          BDS · 25 M
+        </span>
+
+        <h3>
+          FALLSCHEIBE
+        </h3>
+
+      </div>
+
+    </div>
+
+
+    <div class="disziplin-bestwert">
+
+      <span>
+        PERSÖNLICHE BESTZEIT
+      </span>
+
+      <strong id="homeFallscheibeBest">
+        –
+      </strong>
+
+    </div>
+
+
+    <div class="disziplin-stats">
+
+      <div>
+
+        <span>
+          Ø ZEIT
+        </span>
+
+        <strong id="homeFallscheibeDurchschnitt">
+          –
+        </strong>
+
+      </div>
+
+
+      <div>
+
+        <span>
+          TRAININGS
+        </span>
+
+        <strong id="homeFallscheibeTrainings">
+          0
+        </strong>
+
+      </div>
+
+    </div>
+
+  </article>
+
+
+  <!-- LETZTES TRAINING -->
+
+  <section class="unterseiten-bereich">
+
+    <div class="bereich-titel">
+
+      <span>
+        ZULETZT
+      </span>
+
+      <h2>
+        Letztes Training
+      </h2>
+
+    </div>
+
+
+    <div class="letztes-training-card">
+
+      <span id="letztesTraining">
+        Noch kein Training vorhanden.
+      </span>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+
+<!-- ======================================================
+     ENTWICKLUNG
+====================================================== -->
+
+<main
+  id="entwicklungsseite"
+  class="versteckt"
+>
+
+  <header class="unterseite-header">
+
+    <button
+      id="entwicklungZurueck"
+      class="zurueck"
+    >
+      ←
+    </button>
+
+
+    <div>
+
+      <span>
+        STATISTIK
+      </span>
+
+      <h1>
+        Entwicklung
+      </h1>
+
+    </div>
+
+  </header>
+
+
+  <p class="seitenbeschreibung">
+    Verfolge deine Leistung über mehrere Trainings.
+  </p>
+
+
+  <div class="diagramm-karte">
+
+
+    <label for="diagrammBereich">
+      Bereich
+    </label>
+
+    <select id="diagrammBereich">
+
+      <option value="kw9">
+        Kurzwaffe · 9 mm
+      </option>
+
+      <option value="kw22">
+        Kurzwaffe · .22 l.r.
+      </option>
+
+      <option value="lw22">
+        Langwaffe · .22 l.r.
+      </option>
+
+    </select>
+
+
+    <label for="diagrammDisziplin">
+      Disziplin
+    </label>
+
+    <select id="diagrammDisziplin">
+
+      <option value="Praezision">
+        🎯 Präzision
+      </option>
+
+      <option value="Speedschiessen">
+        ⚡ Speed
+      </option>
+
+      <option value="Fallscheibe">
+        🔔 Fallscheibe
+      </option>
+
+    </select>
+
+
+
+    <!-- NUR PRÄZISION -->
+
+    <div
+      id="diagrammPraezisionFilter"
+      class="filter-zeile"
+    >
+
+      <div>
+
+        <label for="diagrammEntfernung">
+          Entfernung
+        </label>
+
+        <select id="diagrammEntfernung">
+
+          <option value="alle">
+            Alle
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div>
+
+        <label for="diagrammSchuesse">
+          Schusszahl
+        </label>
+
+        <select id="diagrammSchuesse">
+
+          <option value="alle">
+            Alle
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- STATISTIK -->
+
+    <div class="diagramm-info">
+
+      <div>
+
+        <span id="diagrammLetzteTitel">
+          LETZTE
+        </span>
+
+        <strong id="diagrammLetzte">
+          –
+        </strong>
+
+      </div>
+
+
+      <div>
+
+        <span id="diagrammBesteTitel">
+          BESTE
+        </span>
+
+        <strong id="diagrammBeste">
+          –
+        </strong>
+
+      </div>
+
+
+      <div>
+
+        <span id="diagrammDurchschnittTitel">
+          Ø
+        </span>
+
+        <strong id="diagrammDurchschnitt">
+          –
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="diagrammAnzahl"
+      class="diagramm-anzahl"
+    >
+      0 Trainings
+    </div>
+
+
+    <div
+      id="diagrammLeer"
+      class="diagramm-leer"
+    >
+      Keine Trainings für diese Auswahl vorhanden.
+    </div>
+
+
+
+    <!-- DIAGRAMM -->
+
+    <div
+      id="diagrammContainer"
+      class="diagramm-container versteckt"
+    >
+
+      <div
+        id="diagrammSkala"
+        class="diagramm-skala"
+      >
+
+        <span>100 %</span>
+        <span>75 %</span>
+        <span>50 %</span>
+        <span>25 %</span>
+        <span>0 %</span>
+
+      </div>
+
+
+      <div class="diagramm-flaeche">
+
+        <div class="gitterlinie linie100"></div>
+
+        <div class="gitterlinie linie75"></div>
+
+        <div class="gitterlinie linie50"></div>
+
+        <div class="gitterlinie linie25"></div>
+
+        <div class="gitterlinie linie0"></div>
+
+
+        <svg
+          id="diagrammSvg"
+          viewBox="0 0 1000 300"
+          preserveAspectRatio="none"
+        ></svg>
+
+
+        <div id="diagrammPunkte"></div>
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="diagrammDaten"
+      class="diagramm-daten"
+    ></div>
+
+  </div>
+
+</main>
+
+
+
+<!-- ======================================================
+     TRAININGSBUCH
+====================================================== -->
+
+<main
+  id="trainingsseite"
+  class="versteckt"
+>
+
+  <header class="unterseite-header">
+
+    <button
+      id="trainingZurueck"
+      class="zurueck"
+    >
+      ←
+    </button>
+
+
+    <div>
+
+      <span>
+        ARCHIV
+      </span>
+
+      <h1>
+        Trainingsbuch
+      </h1>
+
+    </div>
+
+  </header>
+
+
+  <p class="seitenbeschreibung">
+    Alle gespeicherten Trainingseinträge.
+  </p>
+
+
+  <label for="filter">
+    Bereich
+  </label>
+
+  <select id="filter">
+
+    <option value="alle">
+      Alle Bereiche
+    </option>
+
+    <option value="kw9">
+      Kurzwaffe · 9 mm
+    </option>
+
+    <option value="kw22">
+      Kurzwaffe · .22 l.r.
+    </option>
+
+    <option value="lw22">
+      Langwaffe · .22 l.r.
+    </option>
+
+  </select>
+
+
+  <label for="filterDisziplin">
+    Disziplin
+  </label>
+
+  <select id="filterDisziplin">
+
+    <option value="alle">
+      Alle Disziplinen
+    </option>
+
+    <option value="Praezision">
+      🎯 Präzision
+    </option>
+
+    <option value="Speedschiessen">
+      ⚡ Speed
+    </option>
+
+    <option value="Fallscheibe">
+      🔔 Fallscheibe
+    </option>
+
+  </select>
+
+
+  <div id="trainingsListe"></div>
+
+</main>
+
+
+
+<!-- ======================================================
+     DATENSICHERUNG
+====================================================== -->
+
+<main
+  id="backupSeite"
+  class="versteckt"
+>
+
+  <header class="unterseite-header">
+
+    <button
+      id="backupZurueck"
+      class="zurueck"
+    >
+      ←
+    </button>
+
+
+    <div>
+
+      <span>
+        SICHERHEIT
+      </span>
+
+      <h1>
+        Datensicherung
+      </h1>
+
+    </div>
+
+  </header>
+
+
+  <p class="seitenbeschreibung">
+    Sichere dein komplettes Trainingsbuch als Datei.
+  </p>
+
+
+  <section class="backup-karte">
+
+    <div class="backup-symbol">
+      💾
+    </div>
+
+
+    <h3>
+      Backup erstellen
+    </h3>
+
+    <p>
+      Speichere alle Trainingsdaten als JSON-Datei
+      auf deinem iPhone oder in iCloud Drive.
+    </p>
+
+
+    <button
+      id="backupExportieren"
+      class="backup-export"
+    >
+      📤 BACKUP ERSTELLEN
+    </button>
+
+  </section>
+
+
+
+  <section class="backup-karte backup-wiederherstellen">
+
+    <div class="backup-symbol">
+      ↻
+    </div>
+
+
+    <h3>
+      Backup wiederherstellen
+    </h3>
+
+    <p>
+      Lade eine zuvor gespeicherte Sicherungsdatei
+      wieder in dein Schießbuch.
+    </p>
+
+
+    <button
+      id="backupImportieren"
+      class="backup-import"
+    >
+      📥 BACKUP WIEDERHERSTELLEN
+    </button>
+
+
+    <input
+      type="file"
+      id="backupDatei"
+      accept=".json,application/json"
+      class="backup-datei"
+    >
+
+  </section>
+
+
+  <div
+    id="backupStatus"
+    class="backup-status"
+  >
+    Noch kein Backup in dieser Sitzung erstellt.
+  </div>
+
+
+  <div class="backup-warnung">
+
+    <strong>
+      Wichtig
+    </strong>
+
+    <p>
+      CodePen speichert deine Trainingsdaten nicht zusammen
+      mit dem Programmcode. Erstelle deshalb regelmäßig ein
+      Backup deines Schießbuchs.
+    </p>
+
+  </div>
+
+</main>
+
+
+
+<!-- ======================================================
+     JAVASCRIPT
+====================================================== -->
+
+<script src="script.js"></script>
+
+
+</body>
+
+</html>
