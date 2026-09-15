@@ -1,5 +1,5 @@
 /* =========================================================
-   CIUPKE – MEIN SCHIESSBUCH
+   MY SHOOTING LOG
    script.js
    ========================================================= */
 
@@ -10,6 +10,7 @@ const BEDUERFNIS_MODUS_KEY = "beduerfnisModus";
 const BACKUP_VERSION = 4;
 
 let trainings = ladeTrainings();
+let trainingInBearbeitungId = null;
 
 /* =========================================================
    HILFSFUNKTIONEN
@@ -1393,8 +1394,14 @@ function trainingVorbereiten(
       "9 mm";
   }
 
+  trainingInBearbeitungId = null;
+
   if ($("waffe")) {
-    $("waffe").value = "";
+    $("waffe").value = "Vereinswaffe";
+  }
+
+  if ($("trainingSpeichern")) {
+    $("trainingSpeichern").textContent = "TRAINING SPEICHERN";
   }
 
   if ($("notizen")) {
@@ -1430,7 +1437,7 @@ function trainingVorbereiten(
     }
 
     if ($("schuesse")) {
-      $("schuesse").value = "";
+      $("schuesse").value = "50";
     }
 
     if ($("ringe")) {
@@ -2207,11 +2214,15 @@ function trainingSpeichern() {
     return;
   }
 
+  const vorhandenesTraining = trainingInBearbeitungId
+    ? trainings.find(t => String(t.id) === String(trainingInBearbeitungId))
+    : null;
+
   const basis = {
-    id: neueId(),
+    id: vorhandenesTraining?.id || neueId(),
     datum,
-    erstelltAm:
-      new Date().toISOString(),
+    erstelltAm: vorhandenesTraining?.erstelltAm || new Date().toISOString(),
+    geaendertAm: vorhandenesTraining ? new Date().toISOString() : undefined,
     disziplin,
     waffenart:
       $("waffenart")?.value ||
@@ -2220,8 +2231,8 @@ function trainingSpeichern() {
       $("kaliber")?.value ||
       "9 mm",
     waffe:
-      $("waffe")?.value.trim() ||
-      "",
+      $("waffe")?.value ||
+      "Vereinswaffe",
     notizen:
       $("notizen")?.value.trim() ||
       ""
@@ -2244,10 +2255,7 @@ function trainingSpeichern() {
       );
 
     const entfernung =
-      zahl(
-        $("entfernung")?.value,
-        25
-      );
+      parseInt($("entfernung")?.value, 10) || 25;
 
     if (schuesse <= 0) {
       alert(
@@ -2369,21 +2377,28 @@ function trainingSpeichern() {
 
   if (!training) return;
 
-  trainings.push(
-    training
-  );
+  if (vorhandenesTraining) {
+    const index = trainings.findIndex(
+      t => String(t.id) === String(vorhandenesTraining.id)
+    );
+    if (index >= 0) trainings[index] = training;
+  } else {
+    trainings.push(training);
+  }
 
   speichereTrainings();
-
   aktualisiereAlles();
 
+  const wurdeBearbeitet = Boolean(vorhandenesTraining);
+  trainingInBearbeitungId = null;
+
   alert(
-    "Training wurde gespeichert. 🎯"
+    wurdeBearbeitet
+      ? "Training wurde aktualisiert. ✅"
+      : "Training wurde gespeichert. 🎯"
   );
 
-  zeigeSeite(
-    "startseite"
-  );
+  zeigeSeite(wurdeBearbeitet ? "trainingsseite" : "startseite");
 }
 
 /* =========================================================
@@ -2755,6 +2770,14 @@ function renderTrainingsbuch() {
         }
       );
     });
+
+  container
+    .querySelectorAll("[data-bearbeiten]")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        bearbeiteTraining(button.dataset.bearbeiten);
+      });
+    });
 }
 
 function trainingVollHTML(t) {
@@ -2881,13 +2904,23 @@ function trainingVollHTML(t) {
           : ""
       }
 
-      <button
-        type="button"
-        class="loeschen"
-        data-loeschen="${htmlSicher(t.id)}"
-      >
-        Training löschen
-      </button>
+      <div class="training-aktionen">
+        <button
+          type="button"
+          class="bearbeiten"
+          data-bearbeiten="${htmlSicher(t.id)}"
+        >
+          Training bearbeiten
+        </button>
+
+        <button
+          type="button"
+          class="loeschen"
+          data-loeschen="${htmlSicher(t.id)}"
+        >
+          Training löschen
+        </button>
+      </div>
 
     </article>
   `;
@@ -2955,6 +2988,74 @@ function serienHTML(t) {
 
     </div>
   `;
+}
+
+/* =========================================================
+   TRAINING BEARBEITEN
+   ========================================================= */
+
+function bearbeiteTraining(id) {
+  const t = trainings.find(x => String(x.id) === String(id));
+  if (!t) return;
+
+  const d = normaleDisziplin(t);
+  trainingVorbereiten(d);
+  trainingInBearbeitungId = t.id;
+
+  if ($("datum")) $("datum").value = t.datum || heuteISO();
+  if ($("waffenart")) $("waffenart").value = t.waffenart || "Kurzwaffe";
+  if ($("kaliber")) $("kaliber").value = t.kaliber || "9 mm";
+  if ($("waffe")) {
+    const alt = String(t.waffe || "").toLowerCase();
+    $("waffe").value = alt.includes("verein") ? "Vereinswaffe" : "Private Waffe";
+  }
+  if ($("notizen")) $("notizen").value = t.notizen || "";
+
+  if (d === "Praezision") {
+    if ($("entfernung")) $("entfernung").value = `${zahl(t.entfernung, 25)} m`;
+    if ($("schuesse")) $("schuesse").value = praezisionSchuesse(t) || 50;
+    if ($("ringe")) $("ringe").value = praezisionRinge(t);
+    aktualisierePraezision();
+  }
+
+  if (d === "Speedschiessen") {
+    const anzahl = zahl(t.anzahlSerien, Array.isArray(t.serien) ? t.serien.length : 4) || 4;
+    if ($("speedSerien")) $("speedSerien").value = String(anzahl);
+    baueSpeedSerien();
+    const karten = $("speedSerienContainer")?.querySelectorAll(".serie-karte") || [];
+    (t.serien || []).forEach((serie, i) => {
+      const karte = karten[i];
+      if (!karte) return;
+      const selects = karte.querySelectorAll(".speed-wert");
+      const werte = serie.werte ?? serie.treffer ?? [];
+      selects.forEach((select, j) => { if (werte[j] !== undefined) select.value = String(werte[j]); });
+      const zeit = karte.querySelector(".speed-zeit");
+      if (zeit) zeit.value = serie.zeit ?? "";
+    });
+    berechneSpeed();
+  }
+
+  if (d === "Fallscheibe") {
+    const anzahl = zahl(t.anzahlSerien, Array.isArray(t.serien) ? t.serien.length : 4) || 4;
+    if ($("fallscheibeSerien")) $("fallscheibeSerien").value = String(anzahl);
+    baueFallscheibenSerien();
+    const karten = $("fallscheibeSerienContainer")?.querySelectorAll(".serie-karte") || [];
+    (t.serien || []).forEach((serie, i) => {
+      const karte = karten[i];
+      if (!karte) return;
+      const gefallen = karte.querySelector(".fall-gefallen");
+      const schuesse = karte.querySelector(".fall-schuesse");
+      const zeit = karte.querySelector(".fall-zeit");
+      if (gefallen) gefallen.value = serie.gefallen ?? serie.treffer ?? 0;
+      if (schuesse) schuesse.value = serie.schuesse ?? 0;
+      if (zeit) zeit.value = serie.zeit ?? "";
+    });
+    berechneFallscheibe();
+  }
+
+  if ($("formularTitel")) $("formularTitel").textContent = `${disziplinName(t)} bearbeiten`;
+  if ($("trainingSpeichern")) $("trainingSpeichern").textContent = "ÄNDERUNGEN SPEICHERN";
+  zeigeSeite("trainingFormular");
 }
 
 /* =========================================================
@@ -3807,6 +3908,29 @@ function aktualisiereAlles() {
    START
    ========================================================= */
 
+/* =========================================================
+   FOTOAUSWERTUNG – BETA
+   ========================================================= */
+
+function verbindeFotoEingabe(inputId, bildId, statusId) {
+  const input = $(inputId);
+  const bild = $(bildId);
+  const status = $(statusId);
+  if (!input || !bild || !status) return;
+
+  input.addEventListener("change", () => {
+    const datei = input.files?.[0];
+    if (!datei) return;
+    const url = URL.createObjectURL(datei);
+    bild.src = url;
+    bild.classList.remove("versteckt");
+    status.textContent = "Foto geladen. Die Kamera-Anbindung funktioniert. Die automatische Treffererkennung ist als Beta vorbereitet und wird mit echten Scheibenfotos kalibriert; bis dahin bitte die Werte darunter kontrollieren bzw. manuell eintragen.";
+  });
+}
+
+verbindeFotoEingabe("praezisionFoto", "praezisionFotoVorschau", "praezisionFotoStatus");
+verbindeFotoEingabe("speedFoto", "speedFotoVorschau", "speedFotoStatus");
+
 function initialisieren() {
   if ($("datum")) {
     $("datum").value =
@@ -3829,7 +3953,7 @@ function initialisieren() {
   );
 
   console.log(
-    `CIUPKE Schießbuch gestartet – ${trainings.length} Trainings geladen.`
+    `My Shooting Log gestartet – ${trainings.length} Trainings geladen.`
   );
 }
 

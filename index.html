@@ -37,10 +37,10 @@
 
   <meta
     name="apple-mobile-web-app-title"
-    content="Schießbuch"
+    content="My Shooting Log"
   >
 
-  <title>Ciupke · Mein Schießbuch</title>
+  <title>My Shooting Log</title>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -62,17 +62,13 @@
     <div
       id="ciupkeLogo"
       class="brand-logo"
-      aria-label="Ciupke Logo"
+      aria-label="My Shooting Log Logo"
     ></div>
 
     <div class="brand-text">
 
       <div class="brand-name">
-        CIUPKE
-      </div>
-
-      <div class="brand-title">
-        MEIN SCHIESSBUCH
+        MY SHOOTING LOG
       </div>
 
       <div class="brand-subtitle">
@@ -319,12 +315,8 @@
   <footer class="app-footer">
 
     <strong>
-      CIUPKE
+      MY SHOOTING LOG
     </strong>
-
-    <span>
-      MEIN SCHIESSBUCH
-    </span>
 
   </footer>
 
@@ -587,12 +579,10 @@
       Waffe
     </label>
 
-    <input
-      type="text"
-      id="waffe"
-      placeholder="z.B. Vereinswaffe"
-      autocomplete="off"
-    >
+    <select id="waffe">
+      <option value="Vereinswaffe">Vereinswaffe</option>
+      <option value="Private Waffe">Private Waffe</option>
+    </select>
 
 
     <label
@@ -680,10 +670,24 @@
       type="number"
       id="schuesse"
       min="1"
+      value="50"
       inputmode="numeric"
-      placeholder="z.B. 20"
+      placeholder="50"
     >
 
+
+    <div class="fotoauswertung" data-foto-bereich="praezision">
+      <div class="fotoauswertung-kopf">
+        <div>
+          <strong>📷 Scheibe fotografieren</strong>
+          <small>Fotoauswertung · Beta</small>
+        </div>
+        <label class="foto-button" for="praezisionFoto">Foto aufnehmen</label>
+      </div>
+      <input id="praezisionFoto" class="foto-input" type="file" accept="image/*" capture="environment">
+      <img id="praezisionFotoVorschau" class="foto-vorschau versteckt" alt="Aufgenommene Präzisionsscheibe">
+      <div id="praezisionFotoStatus" class="foto-status">Noch kein Foto aufgenommen.</div>
+    </div>
 
     <label for="ringe">
       Ringzahl
@@ -738,6 +742,19 @@
 
     </div>
 
+
+    <div class="fotoauswertung" data-foto-bereich="speed">
+      <div class="fotoauswertung-kopf">
+        <div>
+          <strong>📷 Speed-Scheiben fotografieren</strong>
+          <small>Fotoauswertung · Beta</small>
+        </div>
+        <label class="foto-button" for="speedFoto">Foto aufnehmen</label>
+      </div>
+      <input id="speedFoto" class="foto-input" type="file" accept="image/*" capture="environment">
+      <img id="speedFotoVorschau" class="foto-vorschau versteckt" alt="Aufgenommene Speed-Scheiben">
+      <div id="speedFotoStatus" class="foto-status">Noch kein Foto aufgenommen.</div>
+    </div>
 
     <label for="speedSerien">
       Anzahl Serien
@@ -2039,7 +2056,7 @@
      JAVASCRIPT
 ====================================================== -->
 
-<script src="script.js"></script>
+<script src="script.js?v=20260915-3"></script>
 
 
 </body>

@@ -1,20 +1,14 @@
 {
-  "name": "CIUPKE – Mein Schießbuch",
-  "short_name": "Schießbuch",
-  "description": "Mein persönliches Schießbuch für Training, Ergebnisse und Entwicklung",
-
+  "name": "My Shooting Log",
+  "short_name": "Shooting Log",
+  "description": "Persönliches Schießbuch für Training, Ergebnisse und Entwicklung",
   "start_url": "./",
   "scope": "./",
-
   "display": "standalone",
-
   "background_color": "#070809",
   "theme_color": "#070809",
-
   "orientation": "any",
-
   "lang": "de-DE",
-
   "icons": [
     {
       "src": "icon-192.png",
