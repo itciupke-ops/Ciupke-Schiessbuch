@@ -72,6 +72,69 @@ function neueId() {
 }
 
 /* =========================================================
+   BEREICH / KALIBER NORMALISIEREN
+   ========================================================= */
+
+function normalisiereKaliber(kaliber) {
+  return String(kaliber ?? "")
+    .toLowerCase()
+    .replace(/\s/g, "")
+    .replaceAll(".", "");
+}
+
+function istKaliber9mm(kaliber) {
+  const k = normalisiereKaliber(kaliber);
+
+  return k === "9mm" || k.includes("9mm");
+}
+
+function istKaliber22(kaliber) {
+  const k = normalisiereKaliber(kaliber);
+
+  return (
+    k.includes("22lr") ||
+    k.includes("22") ||
+    k.includes("22l,r")
+  );
+}
+
+function trainingPasstZuBereich(training, bereich) {
+  if (!bereich || bereich === "alle") {
+    return true;
+  }
+
+  const art = String(training?.waffenart ?? "")
+    .trim()
+    .toLowerCase();
+
+  const istKurzwaffe = art.includes("kurz");
+  const istLangwaffe = art.includes("lang");
+
+  if (bereich === "kw9") {
+    return (
+      istKurzwaffe &&
+      istKaliber9mm(training?.kaliber)
+    );
+  }
+
+  if (bereich === "kw22") {
+    return (
+      istKurzwaffe &&
+      istKaliber22(training?.kaliber)
+    );
+  }
+
+  if (bereich === "lw22") {
+    return (
+      istLangwaffe &&
+      istKaliber22(training?.kaliber)
+    );
+  }
+
+  return false;
+}
+
+/* =========================================================
    DISZIPLIN NORMALISIEREN
    ========================================================= */
 
@@ -359,7 +422,7 @@ function trainingVorbereiten(disziplin) {
   }
 
   if ($("kaliber")) {
-    $("kaliber").value = "9mm";
+    $("kaliber").value = "9 mm";
   }
 
   if ($("waffe")) {
@@ -377,7 +440,7 @@ function trainingVorbereiten(disziplin) {
     $("speedFelder")?.classList.add("versteckt");
     $("fallscheibeFelder")?.classList.add("versteckt");
 
-    if ($("entfernung")) $("entfernung").value = "25";
+    if ($("entfernung")) $("entfernung").value = "25 m";
     if ($("schuesse")) $("schuesse").value = "";
     if ($("ringe")) $("ringe").value = "";
 
@@ -425,7 +488,7 @@ $("waffenart")?.addEventListener("change", () => {
 
   if (art === "Langwaffe") {
     if ($("kaliber")) {
-      $("kaliber").value = ".22lr";
+      $("kaliber").value = ".22 l.r.";
     }
 
     if (disziplin !== "Praezision") {
@@ -444,7 +507,7 @@ $("waffenart")?.addEventListener("change", () => {
 
 $("kaliber")?.addEventListener("change", () => {
   if ($("waffenart")?.value === "Langwaffe") {
-    $("kaliber").value = ".22lr";
+    $("kaliber").value = ".22 l.r.";
   }
 
   if ($("disziplin")?.value === "Fallscheibe") {
@@ -614,17 +677,13 @@ function berechneSpeed() {
     }
   });
 
-  /*
-    BDS:
-    Gesamtzeit wird auf volle Sekunden nach unten
-    abgerundet und von der Ringzahl abgezogen.
-  */
-
   const zeitabzug = Math.floor(zeitGesamt + 0.0000001);
   const ergebnis = ringeGesamt - zeitabzug;
 
   if ($("speedTrefferGesamt")) {
-    $("speedTrefferGesamt").textContent = trefferGesamt;
+    const maxTreffer = serien.length * 5;
+    $("speedTrefferGesamt").textContent =
+      `${trefferGesamt} / ${maxTreffer}`;
   }
 
   if ($("speedRingeGesamt")) {
@@ -666,13 +725,7 @@ $("fallscheibeSerien")?.addEventListener(
 function maxFallscheibenSchuesse() {
   const kaliber = $("kaliber")?.value;
 
-  /*
-    Für unsere aktuelle Erfassung:
-    9 mm Pistole = maximal 16 Schuss
-    .22 l.r. Pistole = maximal 10 Schuss
-  */
-
-  return kaliber === ".22lr" ? 10 : 16;
+  return istKaliber22(kaliber) ? 10 : 16;
 }
 
 function baueFallscheibenSerien() {
@@ -834,8 +887,10 @@ function berechneFallscheibe() {
   const gesamtzeit = zeitGesamt + strafzeit;
 
   if ($("fallscheibeGefallenGesamt")) {
+    const maxGefallen = serien.length * 5;
+
     $("fallscheibeGefallenGesamt").textContent =
-      gefallenGesamt;
+      `${gefallenGesamt} / ${maxGefallen}`;
   }
 
   if ($("fallscheibeSchuesseGesamt")) {
@@ -892,14 +947,12 @@ function trainingSpeichern() {
     erstelltAm: new Date().toISOString(),
     disziplin,
     waffenart: $("waffenart")?.value || "Kurzwaffe",
-    kaliber: $("kaliber")?.value || "9mm",
+    kaliber: $("kaliber")?.value || "9 mm",
     waffe: $("waffe")?.value.trim() || "",
     notizen: $("notizen")?.value.trim() || ""
   };
 
   let training;
-
-  /* ---------------- PRÄZISION ---------------- */
 
   if (disziplin === "Praezision") {
     const schuesse = zahl($("schuesse")?.value);
@@ -930,8 +983,6 @@ function trainingSpeichern() {
     };
   }
 
-  /* ---------------- SPEED ---------------- */
-
   if (disziplin === "Speedschiessen") {
     const auswertung = berechneSpeed();
 
@@ -941,15 +992,6 @@ function trainingSpeichern() {
 
     if (zeitFehlt) {
       alert("Bitte für jede Speed-Serie eine Zeit eingeben.");
-      return;
-    }
-
-    const zeitZuLang = auswertung.serien.some(
-      serie => serie.zeit > 60
-    );
-
-    if (zeitZuLang) {
-      alert("Eine Speed-Serie darf maximal 60 Sekunden dauern.");
       return;
     }
 
@@ -966,8 +1008,6 @@ function trainingSpeichern() {
     };
   }
 
-  /* ---------------- FALLSCHEIBE ---------------- */
-
   if (disziplin === "Fallscheibe") {
     const auswertung = berechneFallscheibe();
 
@@ -982,32 +1022,13 @@ function trainingSpeichern() {
       return;
     }
 
-    const maxSchuesse = maxFallscheibenSchuesse();
-
-    const zuVieleSchuesse = auswertung.serien.some(
-      serie => serie.schuesse > maxSchuesse
-    );
-
-    if (zuVieleSchuesse) {
-      alert(
-        `Für dieses Kaliber sind maximal ${maxSchuesse} Schüsse pro Serie vorgesehen.`
-      );
-      return;
-    }
-
     training = {
       ...basis,
       entfernung: 25,
       anzahlSerien: auswertung.serien.length,
       serien: auswertung.serien,
       gefallenGesamt: auswertung.gefallenGesamt,
-
-      /*
-        Zusätzlich gespeichert, damit ältere
-        Versionen des Schießbuchs kompatibel bleiben.
-      */
       trefferGesamt: auswertung.gefallenGesamt,
-
       schuesseGesamt: auswertung.schuesseGesamt,
       zeitGesamt: auswertung.zeitGesamt,
       strafzeit: auswertung.strafzeit,
@@ -1063,8 +1084,6 @@ function aktualisiereLeistungen() {
     t => normaleDisziplin(t) === "Fallscheibe"
   );
 
-  /* ---------------- Präzision ---------------- */
-
   if (praezision.length) {
     const werte = praezision.map(praezisionProzent);
 
@@ -1085,8 +1104,6 @@ function aktualisiereLeistungen() {
   $("homePraezisionTrainings").textContent =
     praezision.length;
 
-  /* ---------------- Speed ---------------- */
-
   if (speed.length) {
     const werte = speed.map(speedErgebnisWert);
 
@@ -1105,8 +1122,6 @@ function aktualisiereLeistungen() {
   }
 
   $("homeSpeedTrainings").textContent = speed.length;
-
-  /* ---------------- Fallscheibe ---------------- */
 
   if (fall.length) {
     const werte = fall.map(fallGesamtzeitWert);
@@ -1243,28 +1258,14 @@ function renderTrainingsbuch() {
   let daten = sortierteTrainings();
 
   const bereich = $("filter")?.value || "alle";
+
   const disziplinFilter =
     $("filterDisziplin")?.value || "alle";
 
   if (bereich !== "alle") {
-    daten = daten.filter(t => {
-      const art = String(t.waffenart || "").toLowerCase();
-      const kaliber = String(t.kaliber || "").toLowerCase();
-
-      if (bereich === "kurzwaffe9") {
-        return art.includes("kurz") && kaliber.includes("9");
-      }
-
-      if (bereich === "kurzwaffe22") {
-        return art.includes("kurz") && kaliber.includes("22");
-      }
-
-      if (bereich === "langwaffe22") {
-        return art.includes("lang") && kaliber.includes("22");
-      }
-
-      return true;
-    });
+    daten = daten.filter(
+      t => trainingPasstZuBereich(t, bereich)
+    );
   }
 
   if (disziplinFilter !== "alle") {
@@ -1415,7 +1416,7 @@ function trainingVollHTML(t) {
 
       <button
         type="button"
-        class="loeschen-button"
+        class="loeschen"
         data-loeschen="${htmlSicher(t.id)}"
       >
         Training löschen
@@ -1563,24 +1564,9 @@ function diagrammDatenFiltern() {
   );
 
   if (bereich !== "alle") {
-    daten = daten.filter(t => {
-      const art = String(t.waffenart || "").toLowerCase();
-      const kaliber = String(t.kaliber || "").toLowerCase();
-
-      if (bereich === "kurzwaffe9") {
-        return art.includes("kurz") && kaliber.includes("9");
-      }
-
-      if (bereich === "kurzwaffe22") {
-        return art.includes("kurz") && kaliber.includes("22");
-      }
-
-      if (bereich === "langwaffe22") {
-        return art.includes("lang") && kaliber.includes("22");
-      }
-
-      return true;
-    });
+    daten = daten.filter(
+      t => trainingPasstZuBereich(t, bereich)
+    );
   }
 
   if (disziplin === "Praezision") {
@@ -1654,12 +1640,6 @@ function zeichneDiagramm() {
   });
 
   aktualisiereDiagrammKennzahlen(werte);
-
-  /*
-    SVG Koordinatensystem:
-    Breite 1000
-    Höhe   400
-  */
 
   const breite = 1000;
   const hoehe = 400;
@@ -1816,10 +1796,21 @@ function aktualisiereDiagrammKennzahlen(werte) {
     $("diagrammDisziplin")?.value || "Praezision";
 
   if (!werte.length) {
-    if ($("diagrammLetzte")) $("diagrammLetzte").textContent = "–";
-    if ($("diagrammBeste")) $("diagrammBeste").textContent = "–";
-    if ($("diagrammDurchschnitt")) $("diagrammDurchschnitt").textContent = "–";
-    if ($("diagrammAnzahl")) $("diagrammAnzahl").textContent = "0";
+    if ($("diagrammLetzte")) {
+      $("diagrammLetzte").textContent = "–";
+    }
+
+    if ($("diagrammBeste")) {
+      $("diagrammBeste").textContent = "–";
+    }
+
+    if ($("diagrammDurchschnitt")) {
+      $("diagrammDurchschnitt").textContent = "–";
+    }
+
+    if ($("diagrammAnzahl")) {
+      $("diagrammAnzahl").textContent = "0 Trainings";
+    }
 
     return;
   }
@@ -1850,7 +1841,10 @@ function aktualisiereDiagrammKennzahlen(werte) {
   }
 
   if ($("diagrammAnzahl")) {
-    $("diagrammAnzahl").textContent = werte.length;
+    $("diagrammAnzahl").textContent =
+      `${werte.length} ${
+        werte.length === 1 ? "Training" : "Trainings"
+      }`;
   }
 
   if ($("diagrammLetzteTitel")) {
@@ -1945,13 +1939,6 @@ async function backupImportieren(event) {
     const daten = JSON.parse(text);
 
     let importierteTrainings;
-
-    /*
-      Unterstützt:
-      - unsere Backup-Versionen
-      - ältere Backups
-      - direkt exportierte Arrays
-    */
 
     if (Array.isArray(daten)) {
       importierteTrainings = daten;
