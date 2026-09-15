@@ -1,0 +1,12 @@
+{
+  "name": "CIUPKE – Mein Schießbuch",
+  "short_name": "Schießbuch",
+  "description": "Mein persönliches Schießbuch für Training, Ergebnisse und Entwicklung",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070809",
+  "theme_color": "#070809",
+  "orientation": "portrait",
+  "lang": "de-DE"
+}
