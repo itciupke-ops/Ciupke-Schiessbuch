@@ -256,6 +256,36 @@
     </button>
 
 
+    <!-- NEU: BEDÜRFNISNACHWEIS -->
+
+    <button
+      id="beduerfnisOeffnen"
+      class="menu-card"
+    >
+
+      <span class="menu-icon">
+        📅
+      </span>
+
+      <span class="menu-text">
+
+        <strong>
+          Bedürfnisnachweis
+        </strong>
+
+        <small>
+          12/18-Regel & Trainingsaktivität
+        </small>
+
+      </span>
+
+      <span class="menu-pfeil">
+        ›
+      </span>
+
+    </button>
+
+
     <button
       id="backupOeffnen"
       class="menu-card"
@@ -564,8 +594,6 @@
       autocomplete="off"
     >
 
-
-    <!-- Wird vom JavaScript gesetzt -->
 
     <label
       for="disziplin"
@@ -1587,6 +1615,293 @@
 
 
   <div id="trainingsListe"></div>
+
+</main>
+
+
+
+<!-- ======================================================
+     BEDÜRFNISNACHWEIS
+====================================================== -->
+
+<main
+  id="beduerfnisSeite"
+  class="versteckt"
+>
+
+  <header class="unterseite-header">
+
+    <button
+      id="beduerfnisZurueck"
+      class="zurueck"
+    >
+      ←
+    </button>
+
+
+    <div>
+
+      <span>
+        TRAININGSAKTIVITÄT
+      </span>
+
+      <h1>
+        Bedürfnisnachweis
+      </h1>
+
+    </div>
+
+  </header>
+
+
+  <p class="seitenbeschreibung">
+    Behalte deine sportliche Schießaktivität im Blick.
+  </p>
+
+
+  <!-- MODUS -->
+
+  <section class="beduerfnis-modus">
+
+    <div class="formular-block-titel">
+      NACHWEIS-MODUS
+    </div>
+
+    <div class="beduerfnis-modus-auswahl">
+
+      <button
+        id="beduerfnisModusErwerb"
+        class="beduerfnis-modus-button aktiv"
+        type="button"
+      >
+        Erwerb
+      </button>
+
+      <button
+        id="beduerfnisModusBesitz"
+        class="beduerfnis-modus-button"
+        type="button"
+      >
+        Besitz
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ERWERB -->
+
+  <section id="beduerfnisErwerb">
+
+    <div class="beduerfnis-hauptkarte">
+
+      <span class="beduerfnis-kicker">
+        ERWERB · § 14 WAFFG
+      </span>
+
+      <h2>
+        12/18-Regel
+      </h2>
+
+      <p>
+        Trainingsaktivität der vergangenen 12 Monate
+      </p>
+
+
+      <div class="beduerfnis-werte">
+
+        <div class="beduerfnis-wert">
+
+          <strong id="beduerfnisErwerbMonate">
+            0 / 12
+          </strong>
+
+          <span>
+            Monate
+          </span>
+
+        </div>
+
+
+        <div class="beduerfnis-wert-trenner"></div>
+
+
+        <div class="beduerfnis-wert">
+
+          <strong id="beduerfnisErwerbTage">
+            0 / 18
+          </strong>
+
+          <span>
+            Trainingstage
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="beduerfnisErwerbStatus"
+        class="beduerfnis-status"
+      >
+        Noch keine Auswertung vorhanden.
+      </div>
+
+    </div>
+
+
+    <div class="beduerfnis-zeitraum">
+
+      <span>
+        BETRACHTUNGSZEITRAUM
+      </span>
+
+      <strong id="beduerfnisErwerbZeitraum">
+        –
+      </strong>
+
+    </div>
+
+
+    <section class="beduerfnis-monate">
+
+      <div class="bereich-titel">
+
+        <span>
+          MONATSÜBERSICHT
+        </span>
+
+        <h2>
+          Deine Aktivität
+        </h2>
+
+      </div>
+
+
+      <div
+        id="beduerfnisMonatsListe"
+        class="beduerfnis-monats-liste"
+      >
+      </div>
+
+    </section>
+
+
+    <div class="beduerfnis-hinweis">
+
+      <strong>
+        Hinweis
+      </strong>
+
+      <p>
+        Mehrere gespeicherte Trainings am selben
+        Kalendertag werden für diese Übersicht nur
+        als ein Trainingstag gezählt.
+      </p>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- BESITZ -->
+
+  <section
+    id="beduerfnisBesitz"
+    class="versteckt"
+  >
+
+    <div class="beduerfnis-hauptkarte">
+
+      <span class="beduerfnis-kicker">
+        BESITZ · § 14 WAFFG
+      </span>
+
+      <h2>
+        Fortbestehen des Bedürfnisses
+      </h2>
+
+      <p>
+        Übersicht über deine sportliche Aktivität
+        für den Besitznachweis.
+      </p>
+
+
+      <div class="beduerfnis-werte">
+
+        <div class="beduerfnis-wert">
+
+          <strong id="beduerfnisBesitzMonate">
+            0
+          </strong>
+
+          <span>
+            aktive Monate
+          </span>
+
+        </div>
+
+
+        <div class="beduerfnis-wert-trenner"></div>
+
+
+        <div class="beduerfnis-wert">
+
+          <strong id="beduerfnisBesitzTage">
+            0
+          </strong>
+
+          <span>
+            Trainingstage
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="beduerfnisBesitzStatus"
+        class="beduerfnis-status"
+      >
+        Noch keine Auswertung vorhanden.
+      </div>
+
+    </div>
+
+
+    <div class="beduerfnis-zeitraum">
+
+      <span>
+        BETRACHTUNGSZEITRAUM
+      </span>
+
+      <strong id="beduerfnisBesitzZeitraum">
+        –
+      </strong>
+
+    </div>
+
+
+    <div class="beduerfnis-hinweis">
+
+      <strong>
+        Hinweis
+      </strong>
+
+      <p>
+        Diese Anzeige dient als persönliche Übersicht
+        deines Trainings. Der erforderliche Nachweis
+        gegenüber Verband oder Behörde richtet sich
+        nach den jeweils geltenden Voraussetzungen.
+      </p>
+
+    </div>
+
+  </section>
 
 </main>
 
