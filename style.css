@@ -1728,6 +1728,363 @@ textarea {
 
 
 /* =========================================================
+   BEDÜRFNISNACHWEIS
+========================================================= */
+
+.beduerfnis-modus {
+  margin-bottom: 16px;
+
+  padding: 16px;
+
+  border: 1px solid var(--line);
+  border-radius: 16px;
+
+  background: var(--card);
+}
+
+.beduerfnis-modus .formular-block-titel {
+  margin-bottom: 12px;
+}
+
+.beduerfnis-modus-auswahl {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 8px;
+}
+
+.beduerfnis-modus-button {
+  min-height: 48px;
+
+  padding: 12px;
+
+  border: 1px solid var(--line);
+  border-radius: 12px;
+
+  background: var(--input);
+
+  color: var(--muted);
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.beduerfnis-modus-button.aktiv {
+  border-color: var(--gold);
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--gold-light),
+      #c99d28
+    );
+
+  color: #08090a;
+
+  box-shadow:
+    0 7px 20px rgba(212, 175, 55, 0.12);
+}
+
+.beduerfnis-hauptkarte {
+  position: relative;
+
+  overflow: hidden;
+
+  padding: 20px;
+
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: var(--radius);
+
+  background:
+    linear-gradient(
+      140deg,
+      rgba(212, 175, 55, 0.1),
+      transparent 55%
+    ),
+    var(--card);
+
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.24);
+}
+
+.beduerfnis-hauptkarte::after {
+  content: "12/18";
+
+  position: absolute;
+
+  right: -5px;
+  bottom: -17px;
+
+  color: rgba(212, 175, 55, 0.035);
+
+  font-size: 61px;
+  font-weight: 900;
+
+  pointer-events: none;
+}
+
+.beduerfnis-kicker {
+  position: relative;
+  z-index: 1;
+
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: var(--gold);
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 1.6px;
+}
+
+.beduerfnis-hauptkarte h2 {
+  position: relative;
+  z-index: 1;
+
+  margin-bottom: 7px;
+
+  font-size: 25px;
+}
+
+.beduerfnis-hauptkarte > p {
+  position: relative;
+  z-index: 1;
+
+  margin-bottom: 20px;
+
+  font-size: 12px;
+}
+
+.beduerfnis-werte {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: stretch;
+
+  padding: 17px 0;
+
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.beduerfnis-wert {
+  flex: 1;
+
+  min-width: 0;
+}
+
+.beduerfnis-wert strong {
+  display: block;
+
+  color: var(--gold-light);
+
+  font-size: 28px;
+  line-height: 1;
+}
+
+.beduerfnis-wert span {
+  display: block;
+
+  margin-top: 7px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.8px;
+}
+
+.beduerfnis-wert-trenner {
+  width: 1px;
+
+  margin: 0 20px;
+
+  background:
+    linear-gradient(
+      transparent,
+      var(--gold-dark),
+      transparent
+    );
+}
+
+.beduerfnis-status {
+  position: relative;
+  z-index: 1;
+
+  margin-top: 15px;
+
+  padding: 12px;
+
+  border-radius: 11px;
+
+  background: rgba(0, 0, 0, 0.22);
+
+  color: var(--muted);
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.beduerfnis-status.erfuellt {
+  border: 1px solid rgba(118, 216, 138, 0.25);
+
+  color: #76d88a;
+}
+
+.beduerfnis-status.offen {
+  border: 1px solid rgba(212, 175, 55, 0.2);
+
+  color: var(--gold-light);
+}
+
+.beduerfnis-zeitraum {
+  margin-top: 13px;
+
+  padding: 14px 16px;
+
+  border: 1px solid var(--line);
+  border-radius: 13px;
+
+  background: var(--card);
+}
+
+.beduerfnis-zeitraum span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--muted);
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 1.2px;
+}
+
+.beduerfnis-zeitraum strong {
+  display: block;
+
+  color: var(--white);
+
+  font-size: 13px;
+}
+
+.beduerfnis-monate {
+  margin-top: 28px;
+}
+
+.beduerfnis-monats-liste {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 8px;
+}
+
+.beduerfnis-monat {
+  min-width: 0;
+
+  padding: 13px;
+
+  border: 1px solid var(--line);
+  border-radius: 12px;
+
+  background: var(--card);
+}
+
+.beduerfnis-monat-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.beduerfnis-monat strong {
+  color: var(--white);
+
+  font-size: 12px;
+}
+
+.beduerfnis-monat-status {
+  width: 9px;
+  height: 9px;
+
+  flex: 0 0 9px;
+
+  border-radius: 50%;
+
+  background: #4d4f54;
+}
+
+.beduerfnis-monat.aktiv {
+  border-color: rgba(212, 175, 55, 0.3);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(212, 175, 55, 0.07),
+      transparent
+    ),
+    var(--card);
+}
+
+.beduerfnis-monat.aktiv .beduerfnis-monat-status {
+  background: var(--gold-light);
+
+  box-shadow:
+    0 0 9px rgba(212, 175, 55, 0.45);
+}
+
+.beduerfnis-monat span:not(.beduerfnis-monat-status) {
+  display: block;
+
+  margin-top: 6px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+}
+
+.beduerfnis-hinweis {
+  margin-top: 20px;
+
+  padding: 15px;
+
+  border: 1px solid rgba(212, 175, 55, 0.16);
+  border-radius: 13px;
+
+  background: rgba(212, 175, 55, 0.035);
+}
+
+.beduerfnis-hinweis strong {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: var(--gold-light);
+
+  font-size: 12px;
+}
+
+.beduerfnis-hinweis p {
+  margin: 0;
+
+  color: var(--muted);
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
    BACKUP
 ========================================================= */
 
@@ -1955,6 +2312,14 @@ textarea {
     font-size: 14px;
   }
 
+  .beduerfnis-wert strong {
+    font-size: 25px;
+  }
+
+  .beduerfnis-wert-trenner {
+    margin: 0 15px;
+  }
+
 }
 
 
@@ -1989,6 +2354,10 @@ textarea {
 
   .disziplin-stats {
     gap: 7px;
+  }
+
+  .beduerfnis-monats-liste {
+    grid-template-columns: 1fr;
   }
 
 }
