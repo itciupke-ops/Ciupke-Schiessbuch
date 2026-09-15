@@ -151,41 +151,22 @@ p {
   border: 1px solid rgba(212, 175, 55, 0.6);
   border-radius: 18px;
 
-  background:
-    radial-gradient(
-      circle,
-      rgba(212, 175, 55, 0.12),
-      transparent 65%
-    ),
-    #0c0d0f;
+  background-color: #ffffff;
+
+  background-image:
+    url("./294ed51f-ef77-4e20-ba9d-83b75e995a43.jpeg");
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 
   box-shadow:
     0 0 0 3px rgba(212, 175, 55, 0.04),
     0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
-
-/*
-  Hier wird anschließend dein echtes Logo
-  direkt als Bilddaten in das CSS eingesetzt.
-*/
-
 .brand-logo::before {
-  content: "C";
-
-  position: absolute;
-  inset: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: var(--gold);
-
-  font-size: 42px;
-  font-weight: 900;
-
-  letter-spacing: -2px;
+  content: none;
 }
 
 .brand-text {
@@ -1902,10 +1883,6 @@ textarea {
     flex-basis: 72px;
 
     border-radius: 16px;
-  }
-
-  .brand-logo::before {
-    font-size: 37px;
   }
 
   .brand-name {
