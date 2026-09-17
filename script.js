@@ -752,15 +752,12 @@ function gueltigeTrainingstage(
     }
 
     /*
-      WICHTIG:
-      Ein Kalendertag zählt nur einmal.
-
-      Wenn an einem Tag zum Beispiel
-      Präzision UND Speed oder
-      9 mm UND .22 l.r. gespeichert
-      wurden, bleibt es hier trotzdem
-      genau EIN Trainingstag.
+      Ein Kalendertag zählt nur einmal,
+      auch wenn an diesem Tag mehrere
+      Disziplinen oder Kaliber geschossen
+      wurden.
     */
+
     tage.add(
       datumZuISO(datum)
     );
@@ -796,16 +793,6 @@ function erwerbZeitraum() {
       heuteISO()
     );
 
-  /*
-    "Vergangene zwölf Monate":
-
-    Beispiel bei 15.09.2026:
-    16.09.2025 bis 15.09.2026.
-
-    Dadurch umfasst der Zeitraum
-    exakt zwölf Monate bis einschließlich
-    des heutigen Tages.
-  */
   const vorZwölfMonaten =
     addiereMonate(
       ende,
@@ -830,14 +817,6 @@ function ganzeMonateImZeitraum(
 ) {
   const monate = [];
 
-  /*
-    Erster möglicher Monat:
-    Ist der Start der 1. eines Monats,
-    ist dieser Monat vollständig enthalten.
-
-    Beginnt der Zeitraum später,
-    starten wir mit dem Folgemonat.
-  */
   let cursor;
 
   if (start.getDate() === 1) {
@@ -983,20 +962,26 @@ function alleBeruehrtenMonate(
   return monate;
 }
 
+/*
+  =========================================================
+  NEUE 12-MONATS-LOGIK
+  =========================================================
+
+  Der 12er-Zähler zeigt die aktuelle
+  zusammenhängende Monatsserie.
+
+  Ein bereits abgeschlossener Monat ohne
+  Training unterbricht die Serie.
+
+  Der laufende Monat unterbricht die Serie
+  NICHT, solange er noch nicht beendet ist.
+*/
+
 function berechneErwerb() {
-  const {
-    start,
-    ende
-  } = erwerbZeitraum();
+  const { start, ende } = erwerbZeitraum();
 
   const tage =
     gueltigeTrainingstage(
-      start,
-      ende
-    );
-
-  const ganzeMonate =
-    ganzeMonateImZeitraum(
       start,
       ende
     );
@@ -1007,21 +992,86 @@ function berechneErwerb() {
       ende
     );
 
-  const ganzeMonateMitTraining =
-    ganzeMonate.filter(monat => {
-      return (
-        trainingstageInMonat(
-          tage,
-          monat.jahr,
-          monat.monat
-        ).length > 0
+  const heute =
+    isoZuDatum(
+      heuteISO()
+    );
+
+  const monatHatTraining = (
+    jahr,
+    monat
+  ) => {
+    return (
+      trainingstageInMonat(
+        tage,
+        jahr,
+        monat
+      ).length > 0
+    );
+  };
+
+  const aktuellerMonatHatTraining =
+    monatHatTraining(
+      heute.getFullYear(),
+      heute.getMonth()
+    );
+
+  /*
+    Wenn diesen Monat bereits trainiert wurde,
+    starten wir die Rückwärtsprüfung beim
+    aktuellen Monat.
+
+    Wurde diesen Monat noch NICHT trainiert,
+    starten wir beim vorherigen Monat.
+
+    Dadurch setzt ein noch laufender Monat
+    die Serie nicht auf 0.
+  */
+
+  let cursor =
+    new Date(
+      heute.getFullYear(),
+      heute.getMonth() -
+        (
+          aktuellerMonatHatTraining
+            ? 0
+            : 1
+        ),
+      1,
+      12,
+      0,
+      0,
+      0
+    );
+
+  let monatsSerie = 0;
+
+  while (monatsSerie < 12) {
+    if (
+      !monatHatTraining(
+        cursor.getFullYear(),
+        cursor.getMonth()
+      )
+    ) {
+      break;
+    }
+
+    monatsSerie++;
+
+    cursor =
+      new Date(
+        cursor.getFullYear(),
+        cursor.getMonth() - 1,
+        1,
+        12,
+        0,
+        0,
+        0
       );
-    });
+  }
 
   const monatsWegErfuellt =
-    ganzeMonate.length > 0 &&
-    ganzeMonateMitTraining.length ===
-      ganzeMonate.length;
+    monatsSerie >= 12;
 
   const achtzehnWegErfuellt =
     tage.length >= 18;
@@ -1030,11 +1080,11 @@ function berechneErwerb() {
     start,
     ende,
     tage,
-    ganzeMonate,
     beruehrteMonate,
-    ganzeMonateMitTraining,
+    monatsSerie,
     monatsWegErfuellt,
     achtzehnWegErfuellt,
+
     erfuellt:
       monatsWegErfuellt ||
       achtzehnWegErfuellt
@@ -1045,17 +1095,22 @@ function renderErwerb() {
   const daten =
     berechneErwerb();
 
-  const monateErfuellt =
-    daten.ganzeMonateMitTraining.length;
-
-  const monateGesamt =
-    daten.ganzeMonate.length;
+  /*
+    12er-Weg
+  */
 
   if ($("beduerfnisErwerbMonate")) {
     $("beduerfnisErwerbMonate")
       .textContent =
-        `${monateErfuellt} / ${monateGesamt}`;
+        `${Math.min(
+          daten.monatsSerie,
+          12
+        )} / 12`;
   }
+
+  /*
+    18er-Weg
+  */
 
   if ($("beduerfnisErwerbTage")) {
     $("beduerfnisErwerbTage")
@@ -1066,81 +1121,76 @@ function renderErwerb() {
         )} / 18`;
   }
 
+  /*
+    Betrachtungszeitraum
+  */
+
   if ($("beduerfnisErwerbZeitraum")) {
     $("beduerfnisErwerbZeitraum")
       .textContent =
         `${datumDeutsch(
-          datumZuISO(daten.start)
+          datumZuISO(
+            daten.start
+          )
         )} – ${datumDeutsch(
-          datumZuISO(daten.ende)
+          datumZuISO(
+            daten.ende
+          )
         )}`;
   }
+
+  /*
+    Der alte lange Erklärungstext ist weg.
+
+    Ab dem 24. eines Monats erscheint
+    stattdessen nur dann eine Erinnerung,
+    wenn im laufenden Monat noch kein
+    Training eingetragen wurde.
+  */
 
   const status =
     $("beduerfnisErwerbStatus");
 
   if (status) {
-    if (daten.erfuellt) {
+    const heute =
+      isoZuDatum(
+        heuteISO()
+      );
+
+    const aktuellerMonatHatTraining =
+      trainingstageInMonat(
+        daten.tage,
+        heute.getFullYear(),
+        heute.getMonth()
+      ).length > 0;
+
+    const erinnerungAnzeigen =
+      heute.getDate() >= 24 &&
+      !aktuellerMonatHatTraining;
+
+    if (erinnerungAnzeigen) {
+      const letzterTag =
+        new Date(
+          heute.getFullYear(),
+          heute.getMonth() + 1,
+          0
+        ).getDate();
+
       if (
-        daten.monatsWegErfuellt &&
-        daten.achtzehnWegErfuellt
+        heute.getDate() >=
+        letzterTag - 1
       ) {
         status.textContent =
-          "Aktivität erfüllt beide Wege: jeden ganzen Monat mindestens einmal und mindestens 18 Trainingstage.";
-      } else if (
-        daten.monatsWegErfuellt
-      ) {
-        status.textContent =
-          "Monatsweg erfüllt: In jedem ganzen Monat des Betrachtungszeitraums ist mindestens ein Trainingstag vorhanden.";
+          "⏳ Monat fast vorbei – diesen Monat ist noch kein Training eingetragen.";
       } else {
         status.textContent =
-          "18er-Weg erfüllt: Mindestens 18 Trainingstage liegen im Betrachtungszeitraum.";
+          "🎯 Denk ans Training! Diesen Monat ist noch kein Training eingetragen.";
       }
+
+      status.style.display = "";
     } else {
-      const fehlendeMonate =
-        Math.max(
-          0,
-          monateGesamt -
-          monateErfuellt
-        );
-
-      const fehlendeTage =
-        Math.max(
-          0,
-          18 -
-          daten.tage.length
-        );
-
-      let monatsText;
-
-      if (monateGesamt === 0) {
-        monatsText =
-          "Für den Monatsweg liegt noch kein ganzer Monat im Betrachtungszeitraum.";
-      } else if (
-        fehlendeMonate === 0
-      ) {
-        monatsText =
-          "Der Monatsweg ist erfüllt.";
-      } else {
-        monatsText =
-          `Noch offen: ${fehlendeMonate} ${
-            fehlendeMonate === 1
-              ? "ganzer Monat"
-              : "ganze Monate"
-          } ohne Training`;
-      }
-
-      const tageText =
-        fehlendeTage === 0
-          ? "der 18er-Weg ist erfüllt"
-          : `${fehlendeTage} ${
-              fehlendeTage === 1
-                ? "Trainingstag"
-                : "Trainingstage"
-            } bis zum 18er-Weg`;
-
-      status.textContent =
-        `${monatsText}; oder ${tageText}.`;
+      status.textContent = "";
+      status.style.display = "none";
     }
   }
 
@@ -1196,17 +1246,6 @@ function renderErwerbMonate(
             "Kein Training";
         }
 
-        /*
-          Teilmonate werden angezeigt,
-          damit der sichtbare Kalender
-          wirklich zum angegebenen
-          Betrachtungszeitraum passt.
-
-          Für den gesetzlichen Monatsweg
-          werden sie aber NICHT als
-          erforderlicher ganzer Monat
-          gewertet.
-        */
         const teilmonat =
           !monat.istGanz
             ? `<small class="beduerfnis-monat-teil">Teilmonat</small>`
@@ -2381,7 +2420,10 @@ function trainingSpeichern() {
     const index = trainings.findIndex(
       t => String(t.id) === String(vorhandenesTraining.id)
     );
-    if (index >= 0) trainings[index] = training;
+
+    if (index >= 0) {
+      trainings[index] = training;
+    }
   } else {
     trainings.push(training);
   }
@@ -2389,7 +2431,9 @@ function trainingSpeichern() {
   speichereTrainings();
   aktualisiereAlles();
 
-  const wurdeBearbeitet = Boolean(vorhandenesTraining);
+  const wurdeBearbeitet =
+    Boolean(vorhandenesTraining);
+
   trainingInBearbeitungId = null;
 
   alert(
@@ -2398,7 +2442,11 @@ function trainingSpeichern() {
       : "Training wurde gespeichert. 🎯"
   );
 
-  zeigeSeite(wurdeBearbeitet ? "trainingsseite" : "startseite");
+  zeigeSeite(
+    wurdeBearbeitet
+      ? "trainingsseite"
+      : "startseite"
+  );
 }
 
 /* =========================================================
@@ -2772,11 +2820,19 @@ function renderTrainingsbuch() {
     });
 
   container
-    .querySelectorAll("[data-bearbeiten]")
+    .querySelectorAll(
+      "[data-bearbeiten]"
+    )
     .forEach(button => {
-      button.addEventListener("click", () => {
-        bearbeiteTraining(button.dataset.bearbeiten);
-      });
+      button.addEventListener(
+        "click",
+        () => {
+          bearbeiteTraining(
+            button.dataset
+              .bearbeiten
+          );
+        }
+      );
     });
 }
 
@@ -2887,7 +2943,8 @@ function trainingVollHTML(t) {
       </div>
 
       <div class="training-meta">
-        ${htmlSicher(t.waffenart || "–")} ·
+
+              ${htmlSicher(t.waffenart || "–")} ·
         ${htmlSicher(t.kaliber || "–")}
         ${t.waffe ? ` · ${htmlSicher(t.waffe)}` : ""}
       </div>
@@ -3005,57 +3062,190 @@ function bearbeiteTraining(id) {
   if ($("datum")) $("datum").value = t.datum || heuteISO();
   if ($("waffenart")) $("waffenart").value = t.waffenart || "Kurzwaffe";
   if ($("kaliber")) $("kaliber").value = t.kaliber || "9 mm";
+
   if ($("waffe")) {
     const alt = String(t.waffe || "").toLowerCase();
-    $("waffe").value = alt.includes("verein") ? "Vereinswaffe" : "Private Waffe";
+
+    $("waffe").value =
+      alt.includes("verein")
+        ? "Vereinswaffe"
+        : "Private Waffe";
   }
-  if ($("notizen")) $("notizen").value = t.notizen || "";
+
+  if ($("notizen")) {
+    $("notizen").value =
+      t.notizen || "";
+  }
 
   if (d === "Praezision") {
-    if ($("entfernung")) $("entfernung").value = `${zahl(t.entfernung, 25)} m`;
-    if ($("schuesse")) $("schuesse").value = praezisionSchuesse(t) || 50;
-    if ($("ringe")) $("ringe").value = praezisionRinge(t);
+    if ($("entfernung")) {
+      $("entfernung").value =
+        `${zahl(t.entfernung, 25)} m`;
+    }
+
+    if ($("schuesse")) {
+      $("schuesse").value =
+        praezisionSchuesse(t) || 50;
+    }
+
+    if ($("ringe")) {
+      $("ringe").value =
+        praezisionRinge(t);
+    }
+
     aktualisierePraezision();
   }
 
   if (d === "Speedschiessen") {
-    const anzahl = zahl(t.anzahlSerien, Array.isArray(t.serien) ? t.serien.length : 4) || 4;
-    if ($("speedSerien")) $("speedSerien").value = String(anzahl);
+    const anzahl =
+      zahl(
+        t.anzahlSerien,
+        Array.isArray(t.serien)
+          ? t.serien.length
+          : 4
+      ) || 4;
+
+    if ($("speedSerien")) {
+      $("speedSerien").value =
+        String(anzahl);
+    }
+
     baueSpeedSerien();
-    const karten = $("speedSerienContainer")?.querySelectorAll(".serie-karte") || [];
-    (t.serien || []).forEach((serie, i) => {
-      const karte = karten[i];
-      if (!karte) return;
-      const selects = karte.querySelectorAll(".speed-wert");
-      const werte = serie.werte ?? serie.treffer ?? [];
-      selects.forEach((select, j) => { if (werte[j] !== undefined) select.value = String(werte[j]); });
-      const zeit = karte.querySelector(".speed-zeit");
-      if (zeit) zeit.value = serie.zeit ?? "";
-    });
+
+    const karten =
+      $("speedSerienContainer")
+        ?.querySelectorAll(
+          ".serie-karte"
+        ) || [];
+
+    (t.serien || []).forEach(
+      (serie, i) => {
+        const karte =
+          karten[i];
+
+        if (!karte) return;
+
+        const selects =
+          karte.querySelectorAll(
+            ".speed-wert"
+          );
+
+        const werte =
+          serie.werte ??
+          serie.treffer ??
+          [];
+
+        selects.forEach(
+          (select, j) => {
+            if (
+              werte[j] !==
+              undefined
+            ) {
+              select.value =
+                String(
+                  werte[j]
+                );
+            }
+          }
+        );
+
+        const zeit =
+          karte.querySelector(
+            ".speed-zeit"
+          );
+
+        if (zeit) {
+          zeit.value =
+            serie.zeit ?? "";
+        }
+      }
+    );
+
     berechneSpeed();
   }
 
   if (d === "Fallscheibe") {
-    const anzahl = zahl(t.anzahlSerien, Array.isArray(t.serien) ? t.serien.length : 4) || 4;
-    if ($("fallscheibeSerien")) $("fallscheibeSerien").value = String(anzahl);
+    const anzahl =
+      zahl(
+        t.anzahlSerien,
+        Array.isArray(t.serien)
+          ? t.serien.length
+          : 4
+      ) || 4;
+
+    if ($("fallscheibeSerien")) {
+      $("fallscheibeSerien")
+        .value =
+          String(anzahl);
+    }
+
     baueFallscheibenSerien();
-    const karten = $("fallscheibeSerienContainer")?.querySelectorAll(".serie-karte") || [];
-    (t.serien || []).forEach((serie, i) => {
-      const karte = karten[i];
-      if (!karte) return;
-      const gefallen = karte.querySelector(".fall-gefallen");
-      const schuesse = karte.querySelector(".fall-schuesse");
-      const zeit = karte.querySelector(".fall-zeit");
-      if (gefallen) gefallen.value = serie.gefallen ?? serie.treffer ?? 0;
-      if (schuesse) schuesse.value = serie.schuesse ?? 0;
-      if (zeit) zeit.value = serie.zeit ?? "";
-    });
+
+    const karten =
+      $("fallscheibeSerienContainer")
+        ?.querySelectorAll(
+          ".serie-karte"
+        ) || [];
+
+    (t.serien || []).forEach(
+      (serie, i) => {
+        const karte =
+          karten[i];
+
+        if (!karte) return;
+
+        const gefallen =
+          karte.querySelector(
+            ".fall-gefallen"
+          );
+
+        const schuesse =
+          karte.querySelector(
+            ".fall-schuesse"
+          );
+
+        const zeit =
+          karte.querySelector(
+            ".fall-zeit"
+          );
+
+        if (gefallen) {
+          gefallen.value =
+            serie.gefallen ??
+            serie.treffer ??
+            0;
+        }
+
+        if (schuesse) {
+          schuesse.value =
+            serie.schuesse ?? 0;
+        }
+
+        if (zeit) {
+          zeit.value =
+            serie.zeit ?? "";
+        }
+      }
+    );
+
     berechneFallscheibe();
   }
 
-  if ($("formularTitel")) $("formularTitel").textContent = `${disziplinName(t)} bearbeiten`;
-  if ($("trainingSpeichern")) $("trainingSpeichern").textContent = "ÄNDERUNGEN SPEICHERN";
-  zeigeSeite("trainingFormular");
+  if ($("formularTitel")) {
+    $("formularTitel")
+      .textContent =
+        `${disziplinName(t)} bearbeiten`;
+  }
+
+  if ($("trainingSpeichern")) {
+    $("trainingSpeichern")
+      .textContent =
+        "ÄNDERUNGEN SPEICHERN";
+  }
+
+  zeigeSeite(
+    "trainingFormular"
+  );
 }
 
 /* =========================================================
@@ -3722,7 +3912,7 @@ $("backupExportieren")
 function backupExportieren() {
   const backup = {
     app:
-      "CIUPKE – Mein Schießbuch",
+      "MY SHOOTING LOG",
     version:
       BACKUP_VERSION,
     exportiertAm:
@@ -3759,7 +3949,7 @@ function backupExportieren() {
   link.href = url;
 
   link.download =
-    `ciupke-schiessbuch-backup-${heuteISO()}.json`;
+    `my-shooting-log-backup-${heuteISO()}.json`;
 
   document.body.appendChild(
     link
@@ -3912,26 +4102,76 @@ function aktualisiereAlles() {
    FOTOAUSWERTUNG – BETA
    ========================================================= */
 
-function verbindeFotoEingabe(inputId, bildId, statusId) {
-  const input = $(inputId);
-  const bild = $(bildId);
-  const status = $(statusId);
-  if (!input || !bild || !status) return;
+function verbindeFotoEingabe(
+  inputId,
+  bildId,
+  statusId
+) {
+  const input =
+    $(inputId);
 
-  input.addEventListener("change", () => {
-    const datei = input.files?.[0];
-    if (!datei) return;
-    const url = URL.createObjectURL(datei);
-    bild.src = url;
-    bild.classList.remove("versteckt");
-    status.textContent = "Foto geladen. Die Kamera-Anbindung funktioniert. Die automatische Treffererkennung ist als Beta vorbereitet und wird mit echten Scheibenfotos kalibriert; bis dahin bitte die Werte darunter kontrollieren bzw. manuell eintragen.";
-  });
+  const bild =
+    $(bildId);
+
+  const status =
+    $(statusId);
+
+  if (
+    !input ||
+    !bild ||
+    !status
+  ) {
+    return;
+  }
+
+  input.addEventListener(
+    "change",
+    () => {
+      const datei =
+        input.files?.[0];
+
+      if (!datei) return;
+
+      const url =
+        URL.createObjectURL(
+          datei
+        );
+
+      bild.src = url;
+
+      bild.classList.remove(
+        "versteckt"
+      );
+
+      status.textContent =
+        "Foto geladen. Die Kamera-Anbindung funktioniert. Die automatische Treffererkennung ist als Beta vorbereitet und wird mit echten Scheibenfotos kalibriert; bis dahin bitte die Werte darunter kontrollieren bzw. manuell eintragen.";
+    }
+  );
 }
 
-verbindeFotoEingabe("praezisionFotoKamera", "praezisionFotoVorschau", "praezisionFotoStatus");
-verbindeFotoEingabe("praezisionFotoGalerie", "praezisionFotoVorschau", "praezisionFotoStatus");
-verbindeFotoEingabe("speedFotoKamera", "speedFotoVorschau", "speedFotoStatus");
-verbindeFotoEingabe("speedFotoGalerie", "speedFotoVorschau", "speedFotoStatus");
+verbindeFotoEingabe(
+  "praezisionFotoKamera",
+  "praezisionFotoVorschau",
+  "praezisionFotoStatus"
+);
+
+verbindeFotoEingabe(
+  "praezisionFotoGalerie",
+  "praezisionFotoVorschau",
+  "praezisionFotoStatus"
+);
+
+verbindeFotoEingabe(
+  "speedFotoKamera",
+  "speedFotoVorschau",
+  "speedFotoStatus"
+);
+
+verbindeFotoEingabe(
+  "speedFotoGalerie",
+  "speedFotoVorschau",
+  "speedFotoStatus"
+);
 
 function initialisieren() {
   if ($("datum")) {
