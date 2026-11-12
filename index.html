@@ -1977,7 +1977,7 @@
     <p id="googleKontoStatus" role="status">Kontostatus wird geprüft …</p>
     <p id="googleDriveHinweis" role="status">Google Drive ist noch nicht verbunden.</p>
     <button id="googleDriveAktion" type="button" class="backup-export" hidden>GOOGLE DRIVE VERBINDEN</button>
-    <p id="googleSyncHinweis">Automatische Synchronisierung: noch nicht eingerichtet.</p>
+    <p id="googleSyncHinweis">Automatischer Abgleich nur bei aktiver Google-Verbindung und geöffneter App.</p>
     <button id="googleKontoAktion" type="button" class="backup-export" hidden>MIT GOOGLE ANMELDEN</button>
   </section>
 
@@ -2000,17 +2000,14 @@
     </h3>
 
     <p>
-      Speichere alle Trainingsdaten als JSON-Datei
-      auf deinem iPhone oder in iCloud Drive.
+      Erstelle eine separate Sicherung in Google Drive oder speichere
+      eine JSON-Datei lokal auf deinem Gerät. Der Dateiname enthält das Datum.
     </p>
 
-
-    <button
-      id="backupExportieren"
-      class="backup-export"
-    >
-      📤 BACKUP ERSTELLEN
-    </button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button id="backupDrive" type="button" class="backup-export">☁️ GOOGLE DRIVE</button>
+      <button id="backupLokal" type="button" class="backup-export">📥 LOKAL</button>
+    </div>
 
   </section>
 
@@ -2082,7 +2079,7 @@
 ====================================================== -->
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="script.js?v=20261112-sync1"></script>
+<script src="script.js?v=20261112-stabilitaet3"></script>
 
 
 </body>
