@@ -4536,19 +4536,22 @@ initialisieren();
   });
   window.addEventListener("online",()=>{if(validToken()) sync(); else if(NATIVE) window.MyShootingLogRequestNativeAuth?.();});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(validToken())sync();else if(NATIVE)window.MyShootingLogRequestNativeAuth?.();}});
-  // iOS-PWA: bei aktiver Sitzung regelmäßig und bei Rückkehr abgleichen.
-  // Keine automatische OAuth-Popup-Anfrage: iOS blockiert diese ohne Nutzeraktion.
-  let lastAutoSyncAttempt = 0;
-  function requestAutoSync() {
-    if (document.hidden || !navigator.onLine || !validToken() || syncNachImportPausiert) return;
+  // Foreground-only auto sync. Browser/iOS may revoke OAuth on app restart.
+  // Never initiate interactive Google OAuth without a user gesture.
+  let lastAutomaticAttempt = 0;
+  function automaticSync(reason) {
+    if (document.hidden || !validToken() || !navigator.onLine) return;
     const now = Date.now();
-    if (now - lastAutoSyncAttempt < 10000) return;
-    lastAutoSyncAttempt = now;
-    sync().catch(console.error);
+    if (now - lastAutomaticAttempt < 12000) return;
+    lastAutomaticAttempt = now;
+    sync().catch(error => console.warn("Auto-Sync (" + reason + ")", error));
   }
-  window.addEventListener("focus", requestAutoSync);
-  window.addEventListener("pageshow", requestAutoSync);
-  setInterval(requestAutoSync, 30000);
+  window.addEventListener("focus", () => automaticSync("focus"));
+  window.addEventListener("pageshow", () => automaticSync("pageshow"));
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) automaticSync("visible");
+  });
+  setInterval(() => automaticSync("interval"), 30000);
   window.MyShootingLogNativeSync = () => sync();
   const originalSave=speichereTrainings;
   speichereTrainings=function(){originalSave();if(!pending){pending=true;setTimeout(()=>{pending=false;if(validToken())sync();else if(NATIVE)window.MyShootingLogRequestNativeAuth?.();},1200);}};
