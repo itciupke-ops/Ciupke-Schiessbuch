@@ -4261,6 +4261,34 @@ initialisieren();
   const status = document.getElementById("syncStatus");
   const button = document.getElementById("syncJetzt");
   let token = null, busy = false, client = null, pending = false;
+  // Session-only access token. Never put Google credentials into persistent localStorage.
+  const SESSION_KEY = "my-shooting-log-drive-session-v2";
+  let expiresAt = 0;
+  function clearSession() {
+    token = null; expiresAt = 0;
+    try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+  }
+  function setToken(value, expiresIn) {
+    if (typeof value !== "string" || !value) return;
+    token = value;
+    expiresAt = Date.now() + Math.max(60, Number(expiresIn) || 3300) * 1000 - 60000;
+    if (!NATIVE) {
+      try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({token, expiresAt})); } catch (_) {}
+    }
+  }
+  if (!NATIVE) {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+      if (saved && typeof saved.token === "string" && saved.expiresAt > Date.now()) {
+        token = saved.token; expiresAt = saved.expiresAt;
+      } else clearSession();
+    } catch (_) { clearSession(); }
+  }
+  function validToken() {
+    if (!token) return false;
+    if (!NATIVE && expiresAt && Date.now() >= expiresAt) { clearSession(); return false; }
+    return true;
+  }
   const report = message => { if (status) status.textContent = message; };
   const previousDriveStatus = window.MyShootingLogDriveStatus;
   window.MyShootingLogDriveStatus = function (data) {
@@ -4269,7 +4297,7 @@ initialisieren();
   };
   window.MyShootingLogDriveToken = function (value) {
     if (typeof value !== "string" || !value) return;
-    token = value;
+    setToken(value, 3300);
     report("Google Drive verbunden. Trainings werden abgeglichen …");
     sync().catch(console.error);
   };
@@ -4280,20 +4308,22 @@ initialisieren();
     if (!client) client = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID, scope: SCOPE,
       callback: result => {
-        if (result?.access_token) { token = result.access_token; sync().catch(console.error); }
+        if (result?.access_token) { setToken(result.access_token, result.expires_in); sync().catch(console.error); }
         else report("Google-Anmeldung nicht abgeschlossen.");
       },
-      error_callback: () => report("Google-Anmeldung fehlgeschlagen. OAuth-Origin prüfen.")
+      error_callback: () => report("Google-Anmeldung nicht abgeschlossen. Bitte erneut auf Jetzt synchronisieren tippen.")
     });
-    client.requestAccessToken({prompt: token ? "" : "consent"});
+    // No forced consent on every tap: Google may reuse its existing account session.
+    // A fresh interactive authorization is still required after token expiry on iOS.
+    client.requestAccessToken({prompt: ""});
   }
   async function api(path, options={}) {
-    if (!token) throw new Error("Bitte zuerst Google Drive verbinden.");
+    if (!validToken()) throw new Error("Bitte zuerst Google Drive verbinden.");
     const response = await fetch("https://www.googleapis.com/drive/v3/"+path, {
       ...options, headers: { Authorization: "Bearer "+token, ...(options.headers||{}) }
     });
     if (!response.ok) {
-      if (response.status === 401) token = null;
+      if (response.status === 401) clearSession();
       throw new Error("Google Drive HTTP "+response.status+": "+(await response.text()).slice(0,150));
     }
     return response;
@@ -4343,7 +4373,7 @@ initialisieren();
     return data.trainings;
   }
   async function sync() {
-    if (busy || !token || !navigator.onLine) return;
+    if (busy || !validToken() || !navigator.onLine) return;
     busy=true; if (button) button.disabled=true;
     try {
       report("Trainings werden mit Google Drive abgeglichen …");
@@ -4396,15 +4426,19 @@ initialisieren();
     finally {busy=false;if(button) button.disabled=false;}
   }
   button?.addEventListener("click",()=>{
-    if (!token) { if(NATIVE) window.location.href="myshootinglog-auth://sync"; else webAuthorize(); }
+    if (!validToken()) { if(NATIVE) window.location.href="myshootinglog-auth://sync"; else webAuthorize(); }
     else sync();
   });
-  window.addEventListener("online",()=>{if(token) sync();});
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&token)sync();});
+  window.addEventListener("online",()=>{if(validToken()) sync();});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&validToken())sync();});
   const originalSave=speichereTrainings;
-  speichereTrainings=function(){originalSave();if(token&&!pending){pending=true;setTimeout(()=>{pending=false;sync();},1200);}};
+  speichereTrainings=function(){originalSave();if(validToken()&&!pending){pending=true;setTimeout(()=>{pending=false;sync();},1200);}};
+  if (validToken()) {
+    report("Google Drive-Sitzung wiederhergestellt. Synchronisierung startet …");
+    setTimeout(() => sync().catch(console.error), 500);
+  }
   if (!NATIVE) {
     const hint=document.getElementById("googleDriveHinweis");
-    if(hint) hint.textContent="iPhone: Google Drive über 'Jetzt synchronisieren' verbinden.";
+    if(hint) hint.textContent="iPhone: Google Drive über 'Jetzt synchronisieren' verbinden. Die Verbindung bleibt innerhalb der laufenden Sitzung erhalten.";
   }
 })();
