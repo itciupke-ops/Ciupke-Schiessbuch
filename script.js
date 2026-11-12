@@ -4251,8 +4251,8 @@ initialisieren();
 })();
 
 
-/* MY SHOOTING LOG – additive Google Drive training sync.
-   Separate app-owned file; never touches manual backup files. */
+/* MY SHOOTING LOG – Drive Sync, safety-first.
+   Manual backup files are never touched. No destructive empty uploads. */
 (function () {
   const NATIVE = /MyShootingLogAndroid\/1/.test(navigator.userAgent);
   const FILE_NAME = "my-shooting-log-sync-v1.json";
@@ -4298,19 +4298,49 @@ initialisieren();
     }
     return response;
   }
+  function canonical(obj) {
+    if (Array.isArray(obj)) return "["+obj.map(canonical).join(",")+"]";
+    if (obj && typeof obj === "object") return "{"+Object.keys(obj).sort().map(k=>JSON.stringify(k)+":"+canonical(obj[k])).join(",")+"}";
+    return JSON.stringify(obj);
+  }
+  function fingerprint(obj) {
+    const value=canonical(obj);
+    let hash=2166136261;
+    for (let i=0;i<value.length;i++) hash=Math.imul(hash^value.charCodeAt(i),16777619);
+    return (hash>>>0).toString(16);
+  }
+  function validate(items) {
+    if (!Array.isArray(items) || items.length>100000) throw new Error("Ungültige Trainingsliste.");
+    for (const item of items) {
+      if (!item || typeof item!=="object" || Array.isArray(item) ||
+          typeof item.id!=="string" && typeof item.id!=="number" || !String(item.id))
+        throw new Error("Ein Training hat keine gültige ID. Keine Daten überschrieben.");
+    }
+  }
   function merge(local, remote) {
+    validate(local); validate(remote);
     const items = new Map();
-    for (const item of remote) if (item && item.id != null) items.set(String(item.id), item);
-    for (const item of local) if (item && item.id != null) {
+    for (const item of remote) items.set(String(item.id), item);
+    for (const item of local) {
       const key=String(item.id), old=items.get(key);
-      // On conflicts, retain local version and preserve remote as a separate safety copy.
-      if (old && JSON.stringify(old)!==JSON.stringify(item)) {
-        const copyId=key+"-konflikt-"+String(Date.now());
-        items.set(copyId,{...old,id:copyId,notizen:(old.notizen||"")+" [Sync-Konfliktkopie]"});
+      if (old && canonical(old)!==canonical(item)) {
+        // Stable conflict key: repeated syncs must not create endless duplicates.
+        const copyId=key+"-konflikt-"+fingerprint(old);
+        if (!items.has(copyId)) items.set(copyId,{
+          ...old,id:copyId,notizen:(old.notizen||"")+" [Sync-Konfliktkopie]"
+        });
       }
       items.set(key,item);
     }
     return [...items.values()];
+  }
+  async function readRemote(file) {
+    if (!file) return [];
+    const data=await (await api("files/"+encodeURIComponent(file.id)+"?alt=media")).json();
+    if (!data || data.format!=="my-shooting-log-sync-v1" || !Array.isArray(data.trainings))
+      throw new Error("Drive-Sync-Datei hat ein unbekanntes Format.");
+    validate(data.trainings);
+    return data.trainings;
   }
   async function sync() {
     if (busy || !token || !navigator.onLine) return;
@@ -4318,21 +4348,33 @@ initialisieren();
     try {
       report("Trainings werden mit Google Drive abgeglichen …");
       const q=encodeURIComponent("name = '"+FILE_NAME+"' and trashed = false");
-      const list=await (await api("files?q="+q+"&fields=files(id,name),nextPageToken&page_size=100")).json();
-      if ((list.files||[]).length>1) throw new Error("Mehrere Sync-Dateien gefunden; kein automatisches Überschreiben.");
+      const list=await (await api("files?q="+q+"&fields=nextPageToken,files(id,name)&page_size=100")).json();
+      if (list.nextPageToken || (list.files||[]).length>1)
+        throw new Error("Mehrere Sync-Dateien oder unvollständige Dateiliste. Kein Überschreiben.");
       const file=list.files?.[0];
-      let remote=[];
-      if (file) {
-        const data=await (await api("files/"+encodeURIComponent(file.id)+"?alt=media")).json();
-        if (!data || data.format!=="my-shooting-log-sync-v1" || !Array.isArray(data.trainings))
-          throw new Error("Drive-Sync-Datei hat ein unbekanntes Format.");
-        remote=data.trainings;
+      const remote=await readRemote(file);
+      const local=trainings.map(item=>({...item}));
+      const merged=merge(local,remote);
+      if (!merged.length) {
+        report("Keine Trainings vorhanden. Es wurde nichts überschrieben.");
+        return;
       }
-      const merged=merge(trainings,remote);
-      // Save merged data locally BEFORE any cloud write.
-      localStorage.setItem("trainings",JSON.stringify(merged));
-      trainings=merged;
-      aktualisiereAlles();
+      // Save a local recovery copy before importing remote changes.
+      if (canonical(local)!==canonical(merged)) {
+        const backupKey="shootinglog-before-sync-"+Date.now();
+        localStorage.setItem(backupKey,JSON.stringify(local));
+        localStorage.setItem("trainings",JSON.stringify(merged));
+        trainings=merged;
+        aktualisiereAlles();
+      }
+      if (canonical(remote)===canonical(merged)) {
+        report("Synchronisiert: "+merged.length+" Trainings · "+new Date().toLocaleTimeString("de-DE"));
+        return;
+      }
+      // Recheck the remote just before writing. This reduces (but cannot eliminate)
+      // concurrent-write races; server-side atomic version checks remain future work.
+      if (file && canonical(await readRemote(file))!==canonical(remote))
+        throw new Error("Drive wurde zwischenzeitlich geändert. Bitte erneut synchronisieren.");
       const payload=JSON.stringify({format:"my-shooting-log-sync-v1",updatedAt:new Date().toISOString(),trainings:merged});
       if (file) {
         const response=await fetch("https://www.googleapis.com/upload/drive/v3/files/"+encodeURIComponent(file.id)+"?uploadType=media",{
@@ -4359,7 +4401,6 @@ initialisieren();
   });
   window.addEventListener("online",()=>{if(token) sync();});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&token)sync();});
-  // Hook training writes: schedule a sync when the app is active and authorized.
   const originalSave=speichereTrainings;
   speichereTrainings=function(){originalSave();if(token&&!pending){pending=true;setTimeout(()=>{pending=false;sync();},1200);}};
   if (!NATIVE) {
