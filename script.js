@@ -4242,6 +4242,7 @@ initialisieren();
   const status = document.getElementById("syncStatus");
   const button = document.getElementById("syncJetzt");
   let token = null, busy = false, client = null, pending = false;
+  let syncRequestedAgain = false;
   let backupAuthorizationPending = false;
   // Session-only access token. Never put Google credentials into persistent localStorage.
   const SESSION_KEY = "my-shooting-log-drive-session-v2";
@@ -4275,7 +4276,7 @@ initialisieren();
   }
   function validToken() {
     if (!token) return false;
-    if (!NATIVE && expiresAt && Date.now() >= expiresAt) { clearSession(); return false; }
+    if (expiresAt && Date.now() >= expiresAt) { clearSession(); return false; }
     return true;
   }
   const report = message => { if (status) status.textContent = message; };
@@ -4302,9 +4303,9 @@ initialisieren();
     previousDriveStatus?.(data);
     if (data?.connected && !token) report("Drive freigegeben. Synchronisierung starten.");
   };
-  window.MyShootingLogDriveToken = function (value) {
+  window.MyShootingLogDriveToken = function (value, expiresIn) {
     if (typeof value !== "string" || !value) return;
-    setToken(value, 3300);
+    setToken(value, expiresIn || 3300);
     report("Google Drive verbunden. Trainings werden abgeglichen …");
     sync().catch(console.error);
   };
@@ -4463,7 +4464,8 @@ initialisieren();
       report("Nach Backup-Wiederherstellung pausiert. App neu starten und Daten vor dem nächsten Abgleich prüfen.");
       return;
     }
-    if (busy || !validToken() || !navigator.onLine) return;
+    if (busy) { syncRequestedAgain = true; return; }
+    if (!validToken() || !navigator.onLine) return;
     busy=true; if (button) button.disabled=true;
     try {
       report("Trainings werden mit Google Drive abgeglichen …");
@@ -4513,7 +4515,13 @@ initialisieren();
       }
       report("Synchronisiert: "+merged.length+" Trainings · "+new Date().toLocaleTimeString("de-DE"));
     } catch(error) { report("Synchronisierung nicht abgeschlossen: "+error.message); }
-    finally {busy=false;if(button) button.disabled=false;}
+    finally {
+      busy=false; if(button) button.disabled=false;
+      if (syncRequestedAgain) {
+        syncRequestedAgain=false;
+        setTimeout(() => sync().catch(console.error), 250);
+      }
+    }
   }
   if (!NATIVE) {
     loginButton?.addEventListener("click", () => {
@@ -4526,10 +4534,18 @@ initialisieren();
     if (!validToken()) { if(NATIVE) window.location.href="myshootinglog-auth://sync"; else webAuthorize(); }
     else sync();
   });
-  window.addEventListener("online",()=>{if(validToken()) sync();});
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&validToken())sync();});
+  window.addEventListener("online",()=>{if(validToken()) sync(); else if(NATIVE) window.MyShootingLogRequestNativeAuth?.();});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(validToken())sync();else if(NATIVE)window.MyShootingLogRequestNativeAuth?.();}});
+  window.MyShootingLogNativeSync = () => sync();
   const originalSave=speichereTrainings;
-  speichereTrainings=function(){originalSave();if(validToken()&&!pending){pending=true;setTimeout(()=>{pending=false;sync();},1200);}};
+  speichereTrainings=function(){originalSave();if(!pending){pending=true;setTimeout(()=>{pending=false;if(validToken())sync();else if(NATIVE)window.MyShootingLogRequestNativeAuth?.();},1200);}};
+  if (NATIVE) {
+    window.MyShootingLogRequestNativeAuth = () => {
+      if (window.MyShootingLogNativeBridge?.requestAuthorization)
+        window.MyShootingLogNativeBridge.requestAuthorization();
+    };
+    setTimeout(() => window.MyShootingLogRequestNativeAuth?.(), 800);
+  }
   if (validToken()) {
     report("Google Drive-Sitzung wiederhergestellt. Synchronisierung startet …");
     setTimeout(() => sync().catch(console.error), 500);
