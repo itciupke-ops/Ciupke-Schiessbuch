@@ -4200,3 +4200,31 @@ function initialisieren() {
 }
 
 initialisieren();
+
+
+/* Google-Kontostatus: nur Android-App; keine Drive-Synchronisierung. */
+(function () {
+  const status = document.getElementById("googleKontoStatus");
+  const action = document.getElementById("googleKontoAktion");
+  if (!status || !action) return;
+  const nativeApp = /MyShootingLogAndroid\/1/.test(navigator.userAgent);
+  window.MyShootingLogAuthStatus = function (account) {
+    if (!nativeApp) return;
+    if (account && account.email) {
+      status.textContent = "Google-Konto erkannt: " + account.email;
+      action.textContent = "GOOGLE-KONTO WECHSELN";
+    } else {
+      status.textContent = "Kein Google-Konto angemeldet";
+      action.textContent = "MIT GOOGLE ANMELDEN";
+    }
+    action.hidden = false;
+  };
+  if (nativeApp) {
+    status.textContent = "Google-Kontostatus wird geladen …";
+    action.addEventListener("click", function () {
+      window.location.href = "myshootinglog-auth://login";
+    });
+  } else {
+    status.textContent = "Google-Anmeldung ist derzeit nur in der Android-App verfügbar.";
+  }
+})();
