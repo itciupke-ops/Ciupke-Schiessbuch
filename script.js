@@ -4245,8 +4245,10 @@ initialisieren();
       window.location.href = "myshootinglog-auth://drive";
     });
   } else {
-    status.textContent = "Google-Anmeldung ist derzeit nur in der Android-App verfügbar.";
-    driveHint.textContent = "Google Drive-Verbindung ist derzeit nur in der Android-App verfügbar.";
+    status.textContent = "Google-Konto noch nicht verbunden.";
+    action.hidden = false;
+    action.textContent = "MIT GOOGLE ANMELDEN";
+    driveHint.textContent = "Auf dem iPhone kannst du Google Drive hier verbinden.";
   }
 })();
 
@@ -4263,10 +4265,15 @@ initialisieren();
   let token = null, busy = false, client = null, pending = false;
   // Session-only access token. Never put Google credentials into persistent localStorage.
   const SESSION_KEY = "my-shooting-log-drive-session-v2";
+  const LOGIN_PREF_KEY = "my-shooting-log-google-login-used-v1";
+  const loginButton = document.getElementById("googleKontoAktion");
+  const accountStatus = document.getElementById("googleKontoStatus");
+  const driveHint = document.getElementById("googleDriveHinweis");
   let expiresAt = 0;
   function clearSession() {
     token = null; expiresAt = 0;
     try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+    if (!NATIVE) updateWebLoginUI();
   }
   function setToken(value, expiresIn) {
     if (typeof value !== "string" || !value) return;
@@ -4274,6 +4281,8 @@ initialisieren();
     expiresAt = Date.now() + Math.max(60, Number(expiresIn) || 3300) * 1000 - 60000;
     if (!NATIVE) {
       try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({token, expiresAt})); } catch (_) {}
+      try { localStorage.setItem(LOGIN_PREF_KEY, "1"); } catch (_) {}
+      updateWebLoginUI();
     }
   }
   if (!NATIVE) {
@@ -4290,6 +4299,22 @@ initialisieren();
     return true;
   }
   const report = message => { if (status) status.textContent = message; };
+  function updateWebLoginUI() {
+    if (NATIVE) return;
+    const connected = validToken();
+    if (loginButton) {
+      loginButton.hidden = false;
+      loginButton.textContent = connected ? "GOOGLE-VERBINDUNG ERNEUERN" : "MIT GOOGLE ANMELDEN";
+    }
+    if (accountStatus) accountStatus.textContent = connected
+      ? "Google Drive verbunden (aktuelle Sitzung)."
+      : localStorage.getItem(LOGIN_PREF_KEY) === "1"
+        ? "Google-Konto bekannt – Verbindung bei Bedarf erneuern."
+        : "Google-Konto noch nicht verbunden.";
+    if (driveHint) driveHint.textContent = connected
+      ? "Synchronisierung ist für diese Sitzung verfügbar."
+      : "Google kann nach dem Schließen der Web-App eine erneute Bestätigung verlangen.";
+  }
   const previousDriveStatus = window.MyShootingLogDriveStatus;
   window.MyShootingLogDriveStatus = function (data) {
     previousDriveStatus?.(data);
@@ -4425,6 +4450,13 @@ initialisieren();
     } catch(error) { report("Synchronisierung nicht abgeschlossen: "+error.message); }
     finally {busy=false;if(button) button.disabled=false;}
   }
+  if (!NATIVE) {
+    loginButton?.addEventListener("click", () => {
+      if (validToken()) { report("Google Drive ist bereits verbunden."); sync(); }
+      else webAuthorize();
+    });
+    updateWebLoginUI();
+  }
   button?.addEventListener("click",()=>{
     if (!validToken()) { if(NATIVE) window.location.href="myshootinglog-auth://sync"; else webAuthorize(); }
     else sync();
@@ -4439,6 +4471,6 @@ initialisieren();
   }
   if (!NATIVE) {
     const hint=document.getElementById("googleDriveHinweis");
-    if(hint) hint.textContent="iPhone: Google Drive über 'Jetzt synchronisieren' verbinden. Die Verbindung bleibt innerhalb der laufenden Sitzung erhalten.";
+    if(hint && validToken()) hint.textContent="Google Drive verbunden. Die Synchronisierung läuft bei geöffneter App automatisch.";
   }
 })();
