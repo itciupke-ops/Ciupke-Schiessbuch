@@ -4206,25 +4206,46 @@ initialisieren();
 (function () {
   const status = document.getElementById("googleKontoStatus");
   const action = document.getElementById("googleKontoAktion");
-  if (!status || !action) return;
+  const driveAction = document.getElementById("googleDriveAktion");
+  const driveHint = document.getElementById("googleDriveHinweis");
+  const syncHint = document.getElementById("googleSyncHinweis");
+  if (!status || !action || !driveAction || !driveHint || !syncHint) return;
   const nativeApp = /MyShootingLogAndroid\/1/.test(navigator.userAgent);
   window.MyShootingLogAuthStatus = function (account) {
     if (!nativeApp) return;
     if (account && account.email) {
       status.textContent = "Google-Konto erkannt: " + account.email;
       action.textContent = "GOOGLE-KONTO WECHSELN";
+      driveAction.hidden = false;
     } else {
       status.textContent = "Kein Google-Konto angemeldet";
       action.textContent = "MIT GOOGLE ANMELDEN";
+      driveAction.hidden = true;
+      driveHint.textContent = "Google Drive ist noch nicht verbunden.";
     }
     action.hidden = false;
+  };
+  window.MyShootingLogDriveStatus = function (drive) {
+    if (!nativeApp) return;
+    const connected = Boolean(drive && drive.connected);
+    driveHint.textContent = connected
+      ? "Google Drive für diese App-Sitzung freigegeben."
+      : "Google Drive ist noch nicht verbunden.";
+    driveAction.textContent = connected
+      ? "DRIVE-FREIGABE ERNEUT PRÜFEN"
+      : "GOOGLE DRIVE VERBINDEN";
+    syncHint.textContent = "Automatische Synchronisierung: noch nicht eingerichtet.";
   };
   if (nativeApp) {
     status.textContent = "Google-Kontostatus wird geladen …";
     action.addEventListener("click", function () {
       window.location.href = "myshootinglog-auth://login";
     });
+    driveAction.addEventListener("click", function () {
+      window.location.href = "myshootinglog-auth://drive";
+    });
   } else {
     status.textContent = "Google-Anmeldung ist derzeit nur in der Android-App verfügbar.";
+    driveHint.textContent = "Google Drive-Verbindung ist derzeit nur in der Android-App verfügbar.";
   }
 })();
