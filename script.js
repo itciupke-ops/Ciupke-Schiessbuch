@@ -8,23 +8,6 @@
 const STORAGE_KEY = "trainings";
 const BEDUERFNIS_MODUS_KEY = "beduerfnisModus";
 const BACKUP_VERSION = 4;
-// Deletion markers are retained so older devices cannot resurrect removed entries.
-const SYNC_DELETED_KEY = "my-shooting-log-deleted-v1";
-function ladeLoeschmarkierungen() {
-  try {
-    const value = JSON.parse(localStorage.getItem(SYNC_DELETED_KEY) || "{}");
-    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
-  } catch (_) { return {}; }
-}
-function speichereLoeschmarkierungen(value) {
-  localStorage.setItem(SYNC_DELETED_KEY, JSON.stringify(value));
-}
-function markiereTrainingGeloescht(id) {
-  const value = ladeLoeschmarkierungen();
-  value[String(id)] = new Date().toISOString();
-  speichereLoeschmarkierungen(value);
-}
-
 // Safety: after restoring a backup, never immediately upload it automatically.
 let syncNachImportPausiert = false;
 
@@ -3290,9 +3273,13 @@ function loescheTraining(id) {
     return;
   }
 
-  // Persist deletion before saving or triggering the automatic sync.
-  markiereTrainingGeloescht(id);
-  trainings = trainings.filter(t => String(t.id) !== String(id));
+  trainings =
+    trainings.filter(
+      t =>
+        String(t.id) !==
+        String(id)
+    );
+
   speichereTrainings();
 
   aktualisiereAlles();
@@ -4378,37 +4365,24 @@ initialisieren();
       ids.add(key);
     }
   }
-  function validateDeleted(value) {
-    if (!value || typeof value !== "object" || Array.isArray(value))
-      throw new Error("Ungültige Löschmarkierungen. Kein Überschreiben.");
-    const result = {};
-    for (const [id, date] of Object.entries(value)) {
-      if (!id || typeof date !== "string" || !Number.isFinite(Date.parse(date)))
-        throw new Error("Ungültige Löschmarkierung. Kein Überschreiben.");
-      result[id] = date;
-    }
-    return result;
-  }
-  function mergeDeleted(local, remote) {
-    const result = {...validateDeleted(remote)};
-    for (const [id, date] of Object.entries(validateDeleted(local))) {
-      if (!result[id] || Date.parse(date) > Date.parse(result[id])) result[id] = date;
-    }
-    return result;
-  }
-  function merge(local, remote, deleted) {
+  function merge(local, remote) {
     validate(local); validate(remote);
     const items = new Map();
     for (const item of remote) {
       const key = String(item.id);
-      if (!deleted[key]) items.set(key, item);
+      if (items.has(key) && canonical(items.get(key)) !== canonical(item)) {
+        throw new Error("Doppelte Trainings-ID in Google Drive. Kein Überschreiben.");
+      }
+      items.set(key, item);
     }
     for (const item of local) {
       const key = String(item.id);
-      if (deleted[key]) continue;
       const old = items.get(key);
-      if (old && canonical(old) !== canonical(item))
+      if (old && canonical(old) !== canonical(item)) {
+        // Never fabricate a second training when the same ID differs.
+        // Stop safely until a deliberate conflict resolution is available.
         throw new Error("Unterschiedliche Versionen eines Trainings erkannt. Kein Überschreiben und keine Konfliktkopie erstellt.");
+      }
       items.set(key, item);
     }
     return [...items.values()];
@@ -4478,12 +4452,12 @@ initialisieren();
   }
   window.MyShootingLogDriveBackup = driveBackup;
   async function readRemote(file) {
-    if (!file) return {trainings:[], deleted:{}};
+    if (!file) return [];
     const data=await (await api("files/"+encodeURIComponent(file.id)+"?alt=media")).json();
     if (!data || data.format!=="my-shooting-log-sync-v1" || !Array.isArray(data.trainings))
       throw new Error("Drive-Sync-Datei hat ein unbekanntes Format.");
     validate(data.trainings);
-    return {trainings:data.trainings, deleted:validateDeleted(data.deleted || {})};
+    return data.trainings;
   }
   async function sync() {
     if (syncNachImportPausiert) {
@@ -4500,14 +4474,10 @@ initialisieren();
       if (list.nextPageToken || (list.files||[]).length>1)
         throw new Error("Mehrere Sync-Dateien oder unvollständige Dateiliste. Kein Überschreiben.");
       const file=list.files?.[0];
-      const remoteData=await readRemote(file);
-      const remote=remoteData.trainings;
+      const remote=await readRemote(file);
       const local=trainings.map(item=>({...item}));
-      const localDeleted=ladeLoeschmarkierungen();
-      const deleted=mergeDeleted(localDeleted,remoteData.deleted);
-      const merged=merge(local,remote,deleted);
-      // Never create a blank sync file from an empty new installation.
-      if (!file && !merged.length && !Object.keys(deleted).length) {
+      const merged=merge(local,remote);
+      if (!merged.length) {
         report("Keine Trainings vorhanden. Es wurde nichts überschrieben.");
         return;
       }
@@ -4519,16 +4489,15 @@ initialisieren();
         trainings=merged;
         aktualisiereAlles();
       }
-      if (canonical(localDeleted)!==canonical(deleted)) speichereLoeschmarkierungen(deleted);
-      if (canonical(remote)===canonical(merged) && canonical(remoteData.deleted)===canonical(deleted)) {
+      if (canonical(remote)===canonical(merged)) {
         report("Synchronisiert: "+merged.length+" Trainings · "+new Date().toLocaleTimeString("de-DE"));
         return;
       }
       // Recheck the remote just before writing. This reduces (but cannot eliminate)
       // concurrent-write races; server-side atomic version checks remain future work.
-      if (file && canonical(await readRemote(file))!==canonical(remoteData))
+      if (file && canonical(await readRemote(file))!==canonical(remote))
         throw new Error("Drive wurde zwischenzeitlich geändert. Bitte erneut synchronisieren.");
-      const payload=JSON.stringify({format:"my-shooting-log-sync-v1",updatedAt:new Date().toISOString(),trainings:merged,deleted});
+      const payload=JSON.stringify({format:"my-shooting-log-sync-v1",updatedAt:new Date().toISOString(),trainings:merged});
       if (file) {
         const response=await fetch("https://www.googleapis.com/upload/drive/v3/files/"+encodeURIComponent(file.id)+"?uploadType=media",{
           method:"PATCH",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:payload
@@ -4565,10 +4534,21 @@ initialisieren();
     if (!validToken()) { if(NATIVE) window.location.href="myshootinglog-auth://sync"; else webAuthorize(); }
     else sync();
   });
-  window.addEventListener("pageshow",()=>{if(validToken())sync();});
-  window.addEventListener("focus",()=>{if(validToken())sync();});
   window.addEventListener("online",()=>{if(validToken()) sync(); else if(NATIVE) window.MyShootingLogRequestNativeAuth?.();});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden){if(validToken())sync();else if(NATIVE)window.MyShootingLogRequestNativeAuth?.();}});
+  // iOS-PWA: bei aktiver Sitzung regelmäßig und bei Rückkehr abgleichen.
+  // Keine automatische OAuth-Popup-Anfrage: iOS blockiert diese ohne Nutzeraktion.
+  let lastAutoSyncAttempt = 0;
+  function requestAutoSync() {
+    if (document.hidden || !navigator.onLine || !validToken() || syncNachImportPausiert) return;
+    const now = Date.now();
+    if (now - lastAutoSyncAttempt < 10000) return;
+    lastAutoSyncAttempt = now;
+    sync().catch(console.error);
+  }
+  window.addEventListener("focus", requestAutoSync);
+  window.addEventListener("pageshow", requestAutoSync);
+  setInterval(requestAutoSync, 30000);
   window.MyShootingLogNativeSync = () => sync();
   const originalSave=speichereTrainings;
   speichereTrainings=function(){originalSave();if(!pending){pending=true;setTimeout(()=>{pending=false;if(validToken())sync();else if(NATIVE)window.MyShootingLogRequestNativeAuth?.();},1200);}};
@@ -4586,7 +4566,7 @@ initialisieren();
   const autoHint = document.getElementById("googleSyncHinweis");
   if (autoHint) autoHint.textContent = NATIVE
     ? "Automatischer Abgleich bei geöffneter App und aktiver Drive-Verbindung; Hintergrund-Sync nicht garantiert."
-    : "Automatischer Abgleich bei gültiger Google-Sitzung. Nach iPhone-Neustart kann eine erneute Anmeldung erforderlich sein.";
+    : "Automatischer Abgleich bei geöffneter App und gültiger Google-Sitzung; nach App-Neustart ggf. erneut anmelden.";
   if (!NATIVE) {
     const hint=document.getElementById("googleDriveHinweis");
     if(hint && validToken()) hint.textContent="Google Drive verbunden. Die Synchronisierung läuft bei geöffneter App automatisch.";
