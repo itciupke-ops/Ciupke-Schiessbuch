@@ -4249,3 +4249,121 @@ initialisieren();
     driveHint.textContent = "Google Drive-Verbindung ist derzeit nur in der Android-App verfügbar.";
   }
 })();
+
+
+/* MY SHOOTING LOG – additive Google Drive training sync.
+   Separate app-owned file; never touches manual backup files. */
+(function () {
+  const NATIVE = /MyShootingLogAndroid\/1/.test(navigator.userAgent);
+  const FILE_NAME = "my-shooting-log-sync-v1.json";
+  const CLIENT_ID = "69715951768-bco0b0cv1ki3t863asfiiv2tt1ifulbt.apps.googleusercontent.com";
+  const SCOPE = "https://www.googleapis.com/auth/drive.file";
+  const status = document.getElementById("syncStatus");
+  const button = document.getElementById("syncJetzt");
+  let token = null, busy = false, client = null, pending = false;
+  const report = message => { if (status) status.textContent = message; };
+  const previousDriveStatus = window.MyShootingLogDriveStatus;
+  window.MyShootingLogDriveStatus = function (data) {
+    previousDriveStatus?.(data);
+    if (data?.connected && !token) report("Drive freigegeben. Synchronisierung starten.");
+  };
+  window.MyShootingLogDriveToken = function (value) {
+    if (typeof value !== "string" || !value) return;
+    token = value;
+    report("Google Drive verbunden. Trainings werden abgeglichen …");
+    sync().catch(console.error);
+  };
+  function webAuthorize() {
+    if (!window.google?.accounts?.oauth2) {
+      report("Google-Anmeldung lädt noch. Bitte erneut versuchen."); return;
+    }
+    if (!client) client = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID, scope: SCOPE,
+      callback: result => {
+        if (result?.access_token) { token = result.access_token; sync().catch(console.error); }
+        else report("Google-Anmeldung nicht abgeschlossen.");
+      },
+      error_callback: () => report("Google-Anmeldung fehlgeschlagen. OAuth-Origin prüfen.")
+    });
+    client.requestAccessToken({prompt: token ? "" : "consent"});
+  }
+  async function api(path, options={}) {
+    if (!token) throw new Error("Bitte zuerst Google Drive verbinden.");
+    const response = await fetch("https://www.googleapis.com/drive/v3/"+path, {
+      ...options, headers: { Authorization: "Bearer "+token, ...(options.headers||{}) }
+    });
+    if (!response.ok) {
+      if (response.status === 401) token = null;
+      throw new Error("Google Drive HTTP "+response.status+": "+(await response.text()).slice(0,150));
+    }
+    return response;
+  }
+  function merge(local, remote) {
+    const items = new Map();
+    for (const item of remote) if (item && item.id != null) items.set(String(item.id), item);
+    for (const item of local) if (item && item.id != null) {
+      const key=String(item.id), old=items.get(key);
+      // On conflicts, retain local version and preserve remote as a separate safety copy.
+      if (old && JSON.stringify(old)!==JSON.stringify(item)) {
+        const copyId=key+"-konflikt-"+String(Date.now());
+        items.set(copyId,{...old,id:copyId,notizen:(old.notizen||"")+" [Sync-Konfliktkopie]"});
+      }
+      items.set(key,item);
+    }
+    return [...items.values()];
+  }
+  async function sync() {
+    if (busy || !token || !navigator.onLine) return;
+    busy=true; if (button) button.disabled=true;
+    try {
+      report("Trainings werden mit Google Drive abgeglichen …");
+      const q=encodeURIComponent("name = '"+FILE_NAME+"' and trashed = false");
+      const list=await (await api("files?q="+q+"&fields=files(id,name),nextPageToken&page_size=100")).json();
+      if ((list.files||[]).length>1) throw new Error("Mehrere Sync-Dateien gefunden; kein automatisches Überschreiben.");
+      const file=list.files?.[0];
+      let remote=[];
+      if (file) {
+        const data=await (await api("files/"+encodeURIComponent(file.id)+"?alt=media")).json();
+        if (!data || data.format!=="my-shooting-log-sync-v1" || !Array.isArray(data.trainings))
+          throw new Error("Drive-Sync-Datei hat ein unbekanntes Format.");
+        remote=data.trainings;
+      }
+      const merged=merge(trainings,remote);
+      // Save merged data locally BEFORE any cloud write.
+      localStorage.setItem("trainings",JSON.stringify(merged));
+      trainings=merged;
+      aktualisiereAlles();
+      const payload=JSON.stringify({format:"my-shooting-log-sync-v1",updatedAt:new Date().toISOString(),trainings:merged});
+      if (file) {
+        const response=await fetch("https://www.googleapis.com/upload/drive/v3/files/"+encodeURIComponent(file.id)+"?uploadType=media",{
+          method:"PATCH",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:payload
+        });
+        if (!response.ok) throw new Error("Drive-Upload HTTP "+response.status);
+      } else {
+        const boundary="shootinglog"+Date.now();
+        const body="--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+
+          JSON.stringify({name:FILE_NAME,mimeType:"application/json"})+"\r\n--"+boundary+
+          "\r\nContent-Type: application/json\r\n\r\n"+payload+"\r\n--"+boundary+"--";
+        const response=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
+          method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"multipart/related; boundary="+boundary},body
+        });
+        if (!response.ok) throw new Error("Drive-Datei erstellen HTTP "+response.status);
+      }
+      report("Synchronisiert: "+merged.length+" Trainings · "+new Date().toLocaleTimeString("de-DE"));
+    } catch(error) { report("Synchronisierung nicht abgeschlossen: "+error.message); }
+    finally {busy=false;if(button) button.disabled=false;}
+  }
+  button?.addEventListener("click",()=>{
+    if (!token) { if(NATIVE) window.location.href="myshootinglog-auth://sync"; else webAuthorize(); }
+    else sync();
+  });
+  window.addEventListener("online",()=>{if(token) sync();});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&token)sync();});
+  // Hook training writes: schedule a sync when the app is active and authorized.
+  const originalSave=speichereTrainings;
+  speichereTrainings=function(){originalSave();if(token&&!pending){pending=true;setTimeout(()=>{pending=false;sync();},1200);}};
+  if (!NATIVE) {
+    const hint=document.getElementById("googleDriveHinweis");
+    if(hint) hint.textContent="iPhone: Google Drive über 'Jetzt synchronisieren' verbinden.";
+  }
+})();

@@ -1981,6 +1981,13 @@
     <button id="googleKontoAktion" type="button" class="backup-export" hidden>MIT GOOGLE ANMELDEN</button>
   </section>
 
+  <section class="backup-karte" id="syncSteuerung">
+    <h3>Trainings synchronisieren</h3>
+    <p id="syncStatus" role="status">Noch keine Synchronisierung durchgeführt.</p>
+    <button id="syncJetzt" class="backup-export" type="button">JETZT SYNCHRONISIEREN</button>
+    <p>Es werden nur Trainingseinträge abgeglichen. Eine bestehende manuelle Sicherung bleibt unverändert.</p>
+  </section>
+
   <section class="backup-karte">
 
     <div class="backup-symbol">
@@ -2074,7 +2081,8 @@
      JAVASCRIPT
 ====================================================== -->
 
-<script src="script.js?v=20261112-2"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="script.js?v=20261112-sync1"></script>
 
 
 </body>
